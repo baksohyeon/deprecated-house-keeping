@@ -1,5 +1,7 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { requestUser } from 'src/decorator/request-user.decorator';
+import { User } from 'src/entities/user.entity';
 import { AuthService } from './auth.service';
 import { GoogleOauthGaurd } from './guards/google-oauth-guard';
 
@@ -17,5 +19,10 @@ export class AuthController {
   @Get('google/redirect')
   handleRedirect() {
     return { msg: 'OK' };
+  }
+
+  @Get('status')
+  getUserStatus(@requestUser() user: User) {
+    console.log(user);
   }
 }
