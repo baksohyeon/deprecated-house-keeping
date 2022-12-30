@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Request, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { requestUser } from 'src/decorator/request-user.decorator';
 import { User } from 'src/entities/user.entity';
@@ -11,14 +11,14 @@ export class AuthController {
 
   @UseGuards(AuthGuard('google'))
   @Get('google/login')
-  handleLogin() {
+  handleLogin(@Request() req) {
     return { msg: 'Google Authentication' };
   }
 
-  @UseGuards(GoogleOauthGaurd)
+  @UseGuards(AuthGuard('google'))
   @Get('google/redirect')
-  handleRedirect() {
-    return { msg: 'OK' };
+  handleRedirect(@Request() req) {
+    return this.authService.googleLogin(req);
   }
 
   @Get('status')
