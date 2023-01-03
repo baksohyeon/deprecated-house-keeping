@@ -3,15 +3,18 @@ import { ConfigType } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Profile, Strategy, VerifyCallback } from 'passport-google-oauth20';
 import { googleConfiguration } from 'src/config/google.config';
+import { UserService } from 'src/user/user.service';
 import { AuthService } from '../auth.service';
+import { UserInfoDto } from '../dto/user-info.dto';
 // import { UserInfoDto } from '../dto/user-info.dto';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(
     @Inject(googleConfiguration.KEY)
-    private googleConfig: ConfigType<typeof googleConfiguration>,
+    private readonly googleConfig: ConfigType<typeof googleConfiguration>,
     private readonly authService: AuthService,
+    private readonly userService: UserService,
   ) {
     super({
       clientID: googleConfig.clientId,
@@ -26,15 +29,17 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     profile: Profile,
     done: VerifyCallback,
   ): Promise<any> {
-    const { id, name, emails, photos } = profile;
-    const user = {
-      provider: 'google',
-      prividerId: id,
+    const { name, emails } = profile;
+    const userInfo = {
       email: emails[0].value,
       username: `${name.familyName} ${name.givenName}`,
-      picture: photos[0].value,
-    };
+    } as UserInfoDto;
 
+    const user = await this.userService.findUserByEmail(userInfo.email);
+    if (!user) {
+      const newUser = await this.userService.createUser(userInfo);
+      done(null, newUser);
+    }
     done(null, user);
   }
 }
