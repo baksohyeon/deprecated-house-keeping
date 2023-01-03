@@ -3,6 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'src/entities/user.entity';
+import { UserModule } from 'src/user/user.module';
+import { UserService } from 'src/user/user.service';
 import { dayToMilisecond } from 'src/util/units-of-time-conversion.util';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
@@ -24,6 +26,7 @@ import { JwtAuthStrategy } from './strategy/jwt-access.strategy';
       },
       inject: [ConfigService],
     }),
+    UserModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, GoogleStrategy, JwtAuthStrategy],
