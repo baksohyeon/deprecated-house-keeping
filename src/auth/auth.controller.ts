@@ -17,7 +17,7 @@ import { User } from 'src/entities/user.entity';
 import { AuthService } from './auth.service';
 import { oauthResponseDto } from './dto/oauth.dto';
 import { GoogleOauthGaurd } from './guards/google-oauth.guard';
-import { JwtAuthGaurd } from './guards/jwt-auth.guard';
+import { JwtAuthGaurd } from './guards/jwt-access.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -42,25 +42,23 @@ export class AuthController {
   ) {
     try {
       const requestUser = req.user as oauthResponseDto;
-      const token = await this.authService.signIn(requestUser);
-      this.logger.log('token: ', token);
-      res.cookie('access_token', token, {
-        maxAge: 259200000,
-        sameSite: true,
-        secure: false,
-      });
+      const tokenConfig = await this.authService.getAccessTokenCookieConfig(
+        requestUser,
+      );
+      const { token, ...options } = tokenConfig;
+      res.cookie('access_token', token, options);
       res.status(HttpStatus.OK);
-      return {
-        accesToken: token,
-      };
     } catch (e: any) {
       this.logger.error(e.message);
       throw new InternalServerErrorException(e.message ?? 'error has occurred');
     }
   }
 
-  async logOut() {
-    return {};
+  @UseGuards(JwtAuthGaurd)
+  async logOut(@Res({ passthrough: true }) res: Request) {
+    const tokenConfig = await this.authService.resetAuthCookiesForLogOut();
+    const { token, ...options } = tokenConfig;
+    res.cookies('access_token', token, options);
   }
 
   @UseGuards(JwtAuthGaurd)

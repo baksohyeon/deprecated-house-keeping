@@ -3,11 +3,11 @@ import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'src/entities/user.entity';
-import { dayToMilisecond } from 'src/util/time-transform.util';
+import { dayToMilisecond } from 'src/util/units-of-time-conversion.util';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { GoogleStrategy } from './strategy/google-strategy';
-import { JwtAuthStrategy } from './strategy/jwt-auth.strategy';
+import { JwtAuthStrategy } from './strategy/jwt-access.strategy';
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),
