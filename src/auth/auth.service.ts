@@ -15,7 +15,7 @@ import {
   minuteToMilisecond,
 } from 'src/util/units-of-time-conversion.util';
 import { Repository } from 'typeorm';
-import { oauthResponseDto } from './dto/oauth.dto';
+import { UserInfoDto } from './dto/user-info.dto';
 
 @Injectable()
 export class AuthService {
@@ -26,11 +26,13 @@ export class AuthService {
     private readonly configService: ConfigService,
   ) {}
 
-  async signIn(requestUser: oauthResponseDto): Promise<tokenConfig> {
+  async signIn(requestUser: UserInfoDto): Promise<tokenConfig> {
     if (!requestUser) {
       throw new BadRequestException('Unauthenticated');
     }
-    const userByEmail = await this.findUserByEmail(requestUser.email);
+    const userByEmail = await this.userRepository.findOneBy({
+      email: requestUser.email,
+    });
     if (!userByEmail) {
       return this.registerUser(requestUser.username, requestUser.email);
     }
@@ -141,13 +143,5 @@ export class AuthService {
       .set({ refreshToken: null })
       .where('id = :id', { id })
       .execute();
-  }
-
-  async findUserByEmail(email: string): Promise<User> {
-    const user = await this.userRepository.findOneBy({ email });
-    if (!user) {
-      return null;
-    }
-    return user;
   }
 }

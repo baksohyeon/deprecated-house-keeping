@@ -15,7 +15,7 @@ import { Request, Response } from 'express';
 import { RequestUser } from 'src/decorator/request-user.decorator';
 import { User } from 'src/entities/user.entity';
 import { AuthService } from './auth.service';
-import { oauthResponseDto } from './dto/oauth.dto';
+import { UserInfoDto } from './dto/user-info.dto';
 import { GoogleOauthGaurd } from './guards/google-oauth.guard';
 import { JwtAuthGaurd } from './guards/jwt-access.guard';
 
@@ -37,16 +37,16 @@ export class AuthController {
   @UseGuards(GoogleOauthGaurd)
   @Get('google/redirect')
   async googleAuthCallback(
-    @Req() req: Request,
+    @RequestUser() user: User,
     @Res({ passthrough: true }) res: Response,
   ) {
     try {
-      const requestUser = req.user as oauthResponseDto;
       const tokenConfig = await this.authService.getAccessTokenCookieConfig(
-        requestUser,
+        user,
       );
       const { token, ...options } = tokenConfig;
       res.cookie('access_token', token, options);
+      this.logger.log('token', token);
       res.status(HttpStatus.OK);
     } catch (e: any) {
       this.logger.error(e.message);
