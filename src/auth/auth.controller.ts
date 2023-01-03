@@ -45,9 +45,14 @@ export class AuthController {
         user,
       );
       const { token, ...options } = tokenConfig;
-      res.cookie('access_token', token, options);
+      // res.cookie('Bearer', token, options);
+      res.setHeader('Authorization', 'Bearer ' + token);
+      this.logger.log(res.header);
       this.logger.log('token', token);
-      res.status(HttpStatus.OK);
+      res.send({
+        success: true,
+        token,
+      });
     } catch (e: any) {
       this.logger.error(e.message);
       throw new InternalServerErrorException(e.message ?? 'error has occurred');
@@ -58,7 +63,7 @@ export class AuthController {
   async logOut(@Res({ passthrough: true }) res: Request) {
     const tokenConfig = await this.authService.resetAuthCookiesForLogOut();
     const { token, ...options } = tokenConfig;
-    res.cookies('access_token', token, options);
+    res.cookies('Bearer', token, options);
   }
 
   @UseGuards(JwtAuthGaurd)
