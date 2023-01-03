@@ -5,6 +5,7 @@ import { AuthModule } from './auth/auth.module';
 import { databaseConfiguration } from './config/database.config';
 import { googleConfiguration } from './config/google.config';
 import { TypeOrmConfigService } from './config/typeorm.config';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { TypeOrmConfigService } from './config/typeorm.config';
     TypeOrmModule.forRootAsync({
       useClass: TypeOrmConfigService,
     }),
+    UserModule,
   ],
   controllers: [],
   providers: [],
