@@ -1,10 +1,12 @@
 import {
   Controller,
   Get,
+  Header,
   HttpException,
   HttpStatus,
   InternalServerErrorException,
   Logger,
+  Redirect,
   Req,
   Res,
   UseGuards,
@@ -41,39 +43,62 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     try {
-      const tokenConfig = await this.authService.getAccessTokenCookieConfig(
-        user,
-      );
-      const { token, ...options } = tokenConfig;
-      // res.cookie('Bearer', token, options);
-      res.setHeader('Authorization', 'Bearer ' + token);
-      this.logger.log(res.header);
-      this.logger.log('token', token);
-      res.send({
-        success: true,
-        token,
-      });
+      const accessTokenConfig =
+        await this.authService.getAccessTokenCookieConfig(user);
+      const refreshTokenConfig =
+        await this.authService.getRefreshTokenCookieConfig(user);
+
+      const { accessToken, ...accessCookieOptions } = accessTokenConfig;
+      const { refreshToken, ...refreshCookieOptions } = refreshTokenConfig;
+      this.authService.saveHashedRefreshToken(refreshToken, user.id);
+
+      res.cookie('access_token', accessToken, accessCookieOptions);
+      res.cookie('refresh_token', refreshToken, refreshCookieOptions);
+      return {
+        messege: 'Google login',
+      };
     } catch (e: any) {
       this.logger.error(e.message);
       throw new InternalServerErrorException(e.message ?? 'error has occurred');
     }
   }
 
-  @UseGuards(JwtAuthGaurd)
-  async logOut(@Res({ passthrough: true }) res: Request) {
-    const tokenConfig = await this.authService.resetAuthCookiesForLogOut();
-    const { token, ...options } = tokenConfig;
-    res.cookies('Bearer', token, options);
+  @UseGuards(AuthGuard('jwt-refresh'))
+  @Get('/google/logout')
+  async logOut(
+    @RequestUser() user: User,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const resetCookieOptions = this.authService.resetCookieOptions();
+    res.clearCookie('access_token', resetCookieOptions);
+    res.clearCookie('refresh_token', resetCookieOptions);
+    await this.authService.resetRefreshToken(user.id);
+    // const { token, ...options } = tokenConfig;
+    // res.cookies('access_token', token, options);
+    return 'hello';
   }
 
-  @UseGuards(JwtAuthGaurd)
-  @Get('profile')
+  @UseGuards(AuthGuard('jwt-access'))
+  @Get('google/profile')
   getProfile(@Req() req: Request) {
     return req.user;
   }
 
   @Get('test')
-  test() {
-    return 'hello';
+  test(@Req() req: Request) {
+    return req.cookies;
+  }
+
+  @UseGuards(AuthGuard('jwt-refresh'))
+  @Get('google/refresh')
+  async reissuanceAccessToken(
+    @RequestUser() user: User,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    this.logger.log('user', user);
+    const { accessToken, ...accessCookieOptions } =
+      await this.authService.getAccessTokenCookieConfig(user);
+    res.cookie('access_token', accessToken, accessCookieOptions);
+    return user;
   }
 }

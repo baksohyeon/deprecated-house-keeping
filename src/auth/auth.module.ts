@@ -8,8 +8,9 @@ import { UserService } from 'src/user/user.service';
 import { dayToMilisecond } from 'src/util/units-of-time-conversion.util';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { GoogleStrategy } from './strategy/google-strategy';
-import { JwtAuthStrategy } from './strategy/jwt-access.strategy';
+import { GoogleStrategy } from './strategies/google-strategy';
+import { JwtAuthStrategy } from './strategies/jwt-access.strategy';
+import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),
@@ -29,6 +30,6 @@ import { JwtAuthStrategy } from './strategy/jwt-access.strategy';
     UserModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, GoogleStrategy, JwtAuthStrategy],
+  providers: [AuthService, GoogleStrategy, JwtAuthStrategy, JwtRefreshStrategy],
 })
 export class AuthModule {}

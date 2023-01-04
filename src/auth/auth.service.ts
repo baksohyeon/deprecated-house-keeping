@@ -3,13 +3,20 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
+  Logger,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { compare, hash } from 'bcrypt';
+import { CookieOptions } from 'express';
 import { User } from 'src/entities/user.entity';
-import { tokenConfig } from 'src/types/token-config.interface';
+import { CookieOptionsInterface } from 'src/types/cookie-options.interface';
+import {
+  AccessCookieConfig,
+  RefreshCookieConfig,
+} from 'src/types/token-config.interface';
 import {
   dayToMilisecond,
   minuteToMilisecond,
@@ -26,7 +33,8 @@ export class AuthService {
     private readonly configService: ConfigService,
   ) {}
 
-  async signIn(requestUser: UserInfoDto): Promise<tokenConfig> {
+  private readonly logger = new Logger(AuthService.name);
+  async signIn(requestUser: UserInfoDto): Promise<AccessCookieConfig> {
     if (!requestUser) {
       throw new BadRequestException('Unauthenticated');
     }
@@ -39,7 +47,10 @@ export class AuthService {
     return this.getAccessTokenCookieConfig(userByEmail);
   }
 
-  async registerUser(username: string, email: string): Promise<tokenConfig> {
+  async registerUser(
+    username: string,
+    email: string,
+  ): Promise<AccessCookieConfig> {
     try {
       const userInfo = {
         username: username,
@@ -57,7 +68,7 @@ export class AuthService {
     }
   }
 
-  async getAccessTokenCookieConfig(user: User): Promise<tokenConfig> {
+  async getAccessTokenCookieConfig(user: User): Promise<AccessCookieConfig> {
     const payload = {
       sub: user.id,
       email: user.email,
@@ -70,18 +81,23 @@ export class AuthService {
       ),
     };
 
-    const accessToken = this.jwtService.sign(payload, accessTokenOptions);
-    return {
-      token: accessToken,
+    const accessToken = {
+      accessToken: this.jwtService.sign(payload, accessTokenOptions),
+    };
+    const cookieOptions: CookieOptions = {
       maxAge: minuteToMilisecond(
         this.configService.get<number>('JWT_ACCESS_TOKEN_EXPIRES_IN_MINUTES'),
       ),
       sameSite: true,
       secure: false,
     };
+    return {
+      ...accessToken,
+      ...cookieOptions,
+    } as AccessCookieConfig;
   }
 
-  async getRefreshTokenCookieConfig(user: User): Promise<tokenConfig> {
+  async getRefreshTokenCookieConfig(user: User): Promise<RefreshCookieConfig> {
     const payload = {
       sub: user.id,
     };
@@ -92,21 +108,25 @@ export class AuthService {
         this.configService.get<number>('JWT_REFRESH_TOKEN_EXPIRES_IN_DAYS'),
       ),
     };
-
-    const refreshToken = this.jwtService.sign(payload, refreshTokenOptions);
-    return {
-      token: refreshToken,
+    const refreshToken = {
+      refreshToken: this.jwtService.sign(payload, refreshTokenOptions),
+    };
+    const refreshCookieOptions: CookieOptions = {
       maxAge: dayToMilisecond(
         this.configService.get<number>('JWT_REFRESH_TOKEN_EXPIRES_IN_DAYS'),
       ),
       sameSite: true,
       secure: false,
     };
+
+    return {
+      ...refreshToken,
+      ...refreshCookieOptions,
+    };
   }
 
-  async resetAuthCookiesForLogOut(): Promise<tokenConfig> {
+  resetCookieOptions(): CookieOptions {
     return {
-      token: '',
       maxAge: 0,
       sameSite: true,
       secure: false,
@@ -126,13 +146,15 @@ export class AuthService {
       .execute();
   }
 
-  async isValidRefreshToken(
-    refreshToken: string,
-    id: number,
-  ): Promise<boolean> {
-    const user = await this.userRepository.findOneBy({ id });
+  async checkRefreshGetUser(refreshToken: string, id: number) {
     // TODO: 에러 핸들링
-    return compare(refreshToken, user.refreshToken);
+    this.logger.log('refresh token, id:', refreshToken, id);
+    const user = await this.userRepository.findOneBy({ id });
+    const isValidRefreshToken = await compare(refreshToken, user.refreshToken);
+    if (!isValidRefreshToken) {
+      throw new UnauthorizedException('Invalid Refresh Token ');
+    }
+    return user;
   }
 
   async resetRefreshToken(id: number): Promise<void> {

@@ -23,4 +23,12 @@ export class UserService {
     const userObject = this.userRepository.create(userInfoDto);
     return this.userRepository.save(userObject);
   }
+
+  async findUserById(id: number): Promise<User> {
+    const user = await this.userRepository.findOneBy({ id });
+    if (!user) {
+      return null;
+    }
+    return user;
+  }
 }
