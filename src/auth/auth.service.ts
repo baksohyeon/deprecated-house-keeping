@@ -136,7 +136,7 @@ export class AuthService {
 
   async saveHashedRefreshToken(
     refreshToken: string,
-    id: number,
+    id: string,
   ): Promise<void> {
     const hashedRefreshToken = await hash(refreshToken, 10);
     await this.userRepository
@@ -147,7 +147,7 @@ export class AuthService {
       .execute();
   }
 
-  async checkRefreshGetUser(refreshToken: string, id: number) {
+  async checkRefreshGetUser(refreshToken: string, id: string) {
     // TODO: 에러 핸들링
     this.logger.log('refresh token, id:', refreshToken, id);
     const user = await this.userRepository.findOneBy({ id });
@@ -158,7 +158,7 @@ export class AuthService {
     return user;
   }
 
-  async resetRefreshToken(id: number): Promise<void> {
+  async resetRefreshToken(id: string): Promise<void> {
     //  유저가 로그아웃 할 때 사용
     await this.userRepository
       .createQueryBuilder()
