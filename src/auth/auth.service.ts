@@ -84,16 +84,17 @@ export class AuthService {
     const accessToken = {
       accessToken: this.jwtService.sign(payload, accessTokenOptions),
     };
-    const cookieOptions: CookieOptions = {
+    const accessCookieOptions: CookieOptions = {
       maxAge: minuteToMilisecond(
         this.configService.get<number>('JWT_ACCESS_TOKEN_EXPIRES_IN_MINUTES'),
       ),
-      sameSite: true,
+      sameSite: 'lax',
       secure: false,
+      httpOnly: false,
     };
     return {
       ...accessToken,
-      ...cookieOptions,
+      ...accessCookieOptions,
     } as AccessCookieConfig;
   }
 

@@ -54,9 +54,7 @@ export class AuthController {
 
       res.cookie('access_token', accessToken, accessCookieOptions);
       res.cookie('refresh_token', refreshToken, refreshCookieOptions);
-      return {
-        messege: 'Google login',
-      };
+      res.redirect('http://localhost:3000');
     } catch (e: any) {
       this.logger.error(e.message);
       throw new InternalServerErrorException(e.message ?? 'error has occurred');
@@ -73,8 +71,6 @@ export class AuthController {
     res.clearCookie('access_token', resetCookieOptions);
     res.clearCookie('refresh_token', resetCookieOptions);
     await this.authService.resetRefreshToken(user.id);
-    // const { token, ...options } = tokenConfig;
-    // res.cookies('access_token', token, options);
     return 'hello';
   }
 
@@ -88,17 +84,20 @@ export class AuthController {
   test(@Req() req: Request) {
     return req.cookies;
   }
-
+  ya;
   @UseGuards(AuthGuard('jwt-refresh'))
   @Get('google/refresh')
   async reissuanceAccessToken(
-    @RequestUser() user: User,
+    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    this.logger.log('user', user);
     const { accessToken, ...accessCookieOptions } =
-      await this.authService.getAccessTokenCookieConfig(user);
+      await this.authService.getAccessTokenCookieConfig(req.user as User);
     res.cookie('access_token', accessToken, accessCookieOptions);
-    return user;
+    return {
+      message: 'reissue access token',
+      statusCode: HttpStatus.OK,
+      user: req.user,
+    };
   }
 }
