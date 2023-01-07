@@ -34,6 +34,7 @@ export class AuthService {
   ) {}
 
   private readonly logger = new Logger(AuthService.name);
+
   async signIn(requestUser: UserInfoDto): Promise<AccessCookieConfig> {
     if (!requestUser) {
       throw new BadRequestException('Unauthenticated');
@@ -149,7 +150,6 @@ export class AuthService {
 
   async checkRefreshGetUser(refreshToken: string, id: string) {
     // TODO: 에러 핸들링
-    this.logger.log('refresh token, id:', refreshToken, id);
     const user = await this.userRepository.findOneBy({ id });
     const isValidRefreshToken = await compare(
       refreshToken,
@@ -163,6 +163,7 @@ export class AuthService {
 
   async resetRefreshToken(id: string): Promise<void> {
     //  유저가 로그아웃 할 때 사용
+    // TODO: 에러 핸들링
     await this.userRepository
       .createQueryBuilder()
       .update(User)

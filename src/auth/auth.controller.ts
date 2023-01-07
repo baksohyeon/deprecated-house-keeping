@@ -11,7 +11,6 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import { AuthGuard } from '@nestjs/passport';
 import { Request, Response } from 'express';
 import { RequestUser } from 'src/decorator/request-user.decorator';
@@ -23,10 +22,7 @@ import { JwtAuthGaurd } from './guards/jwt-access.guard';
 
 @Controller('auth')
 export class AuthController {
-  constructor(
-    private authService: AuthService,
-    private readonly jwtService: JwtService,
-  ) {}
+  constructor(private authService: AuthService) {}
 
   private logger: Logger = new Logger(AuthController.name);
 
@@ -84,7 +80,7 @@ export class AuthController {
   test(@Req() req: Request) {
     return req.cookies;
   }
-  ya;
+
   @UseGuards(AuthGuard('jwt-refresh'))
   @Get('google/refresh')
   async reissuanceAccessToken(
