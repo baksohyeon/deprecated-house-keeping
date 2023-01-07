@@ -5,7 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'src/entities/user.entity';
 import { UserModule } from 'src/user/user.module';
 import { UserService } from 'src/user/user.service';
-import { dayToMilisecond } from 'src/util/units-of-time-conversion.util';
+import { minuteToMilisecond } from 'src/util/units-of-time-conversion.util';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { GoogleStrategy } from './strategies/google-strategy';
@@ -19,7 +19,7 @@ import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
         return {
           secret: configService.get<string>('JWT_ACCESS_TOKEN_SECRET'),
           signOptions: {
-            expiresIn: dayToMilisecond(
+            expiresIn: minuteToMilisecond(
               configService.get<number>('JWT_ACCESS_TOKEN_EXPIRES_IN_SECONDS'),
             ),
           },

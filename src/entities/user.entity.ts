@@ -3,6 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -13,6 +14,7 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Index({ unique: true })
   @Column({ unique: true })
   email: string;
 
@@ -21,7 +23,7 @@ export class User {
 
   @Column({ nullable: true })
   @Exclude()
-  refreshToken?: string;
+  hashedRefreshToken?: string;
 
   @CreateDateColumn()
   createdAt: Date;

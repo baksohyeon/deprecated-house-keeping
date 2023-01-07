@@ -142,7 +142,7 @@ export class AuthService {
     await this.userRepository
       .createQueryBuilder()
       .update(User)
-      .set({ refreshToken: hashedRefreshToken })
+      .set({ hashedRefreshToken: hashedRefreshToken })
       .where('id = :id', { id })
       .execute();
   }
@@ -151,7 +151,10 @@ export class AuthService {
     // TODO: 에러 핸들링
     this.logger.log('refresh token, id:', refreshToken, id);
     const user = await this.userRepository.findOneBy({ id });
-    const isValidRefreshToken = await compare(refreshToken, user.refreshToken);
+    const isValidRefreshToken = await compare(
+      refreshToken,
+      user.hashedRefreshToken,
+    );
     if (!isValidRefreshToken) {
       throw new UnauthorizedException('Invalid Refresh Token ');
     }
@@ -163,7 +166,7 @@ export class AuthService {
     await this.userRepository
       .createQueryBuilder()
       .update(User)
-      .set({ refreshToken: null })
+      .set({ hashedRefreshToken: null })
       .where('id = :id', { id })
       .execute();
   }
