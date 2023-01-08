@@ -10,6 +10,7 @@ import { minuteToMilisecond } from 'src/util/units-of-time-conversion.util';
 import { User } from 'src/entities/user.entity';
 import { mockedConfigService } from './mocks/config.service';
 import { mockedJwtService } from './mocks/jwt.service';
+import { mockRepository } from './mocks/mockreposiotry';
 
 const mockedUser = {
   id: 'uuid',
@@ -19,18 +20,6 @@ const mockedUser = {
   createdAt: new Date(),
   updatedAt: new Date(),
 } as User;
-
-export const mockRepository = () => ({
-  create: jest.fn(),
-  save: jest.fn(),
-  update: jest.fn(),
-  createQueryBuilder: jest.fn(() => ({
-    update: jest.fn().mockReturnThis(),
-    set: jest.fn().mockReturnThis(),
-    where: jest.fn().mockReturnThis(),
-    execute: jest.fn().mockReturnValueOnce(true),
-  })),
-});
 
 describe('AuthService', () => {
   let authService: AuthService;
@@ -51,28 +40,34 @@ describe('AuthService', () => {
           provide: JwtService,
           useValue: mockedJwtService,
         },
-        // GoogleStrategy,
-        // JwtAuthStrategy,
-        // JwtRefreshStrategy,
       ],
     }).compile();
 
     authService = module.get<AuthService>(AuthService);
+    mockedUserRepository = module.get<Repository<User>>(
+      getRepositoryToken(User),
+    );
   });
 
   describe('When reset cookie options', () => {
-    it('should be return max age value is 0', () => {
+    it("should be return cookie's max age value is 0", () => {
       const resetCookieOptions = authService.resetCookieOptions();
       expect(resetCookieOptions.maxAge).toEqual(0);
+      expect(resetCookieOptions.sameSite).toBeTruthy();
+      expect(resetCookieOptions.secure).toBeFalsy();
     });
 
     it('reset null refrech token in database', () => {
       const userId = 'uuid';
-      jest.spyOn(authService, 'resetRefreshToken');
-    });
-  });
+      authService.resetRefreshToken(userId);
 
-  describe('Sign in', () => {
-    it('should be definded ');
+      expect(mockedUserRepository.createQueryBuilder).toHaveBeenCalled();
+      expect(
+        mockedUserRepository.createQueryBuilder().update().set,
+      ).toHaveBeenCalledWith({ hashedRefreshToken: null });
+      expect(mockedUserRepository.createQueryBuilder().execute).toBeCalledTimes(
+        1,
+      );
+    });
   });
 });

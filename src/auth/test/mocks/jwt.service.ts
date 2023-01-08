@@ -1,4 +1,4 @@
 export const mockedJwtService = {
-  sign: () => 'signed-token',
+  sign: jest.fn(() => 'TOKEN'),
   verify: jest.fn(),
 };
