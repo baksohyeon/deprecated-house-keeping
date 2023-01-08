@@ -5,7 +5,7 @@ import { Profile, Strategy, VerifyCallback } from 'passport-google-oauth20';
 import { googleConfiguration } from 'src/config/google.config';
 import { UserService } from 'src/user/user.service';
 import { AuthService } from '../auth.service';
-import { UserInfoDto } from '../dto/user-info.dto';
+import { LoginRequestUserDto } from '../dto/login-request.dto';
 // import { UserInfoDto } from '../dto/user-info.dto';
 
 @Injectable()
@@ -33,7 +33,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     const userInfo = {
       email: emails[0].value,
       username: `${name.familyName} ${name.givenName}`,
-    } as UserInfoDto;
+    } as LoginRequestUserDto;
 
     const user = await this.userService.findUserByEmail(userInfo.email);
     if (!user) {

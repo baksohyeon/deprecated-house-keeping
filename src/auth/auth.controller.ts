@@ -16,9 +16,7 @@ import { Request, Response } from 'express';
 import { RequestUser } from 'src/decorator/request-user.decorator';
 import { User } from 'src/entities/user.entity';
 import { AuthService } from './auth.service';
-import { UserInfoDto } from './dto/user-info.dto';
 import { GoogleOauthGaurd } from './guards/google-oauth.guard';
-import { JwtAuthGaurd } from './guards/jwt-access.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -39,17 +37,29 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     try {
-      const accessTokenConfig =
+      const accessCookieConfig =
         await this.authService.getAccessTokenCookieConfig(user);
-      const refreshTokenConfig =
+      const refreshCookieConfig =
         await this.authService.getRefreshTokenCookieConfig(user);
 
-      const { accessToken, ...accessCookieOptions } = accessTokenConfig;
-      const { refreshToken, ...refreshCookieOptions } = refreshTokenConfig;
-      this.authService.saveHashedRefreshToken(refreshToken, user.id);
-
-      res.cookie('access_token', accessToken, accessCookieOptions);
-      res.cookie('refresh_token', refreshToken, refreshCookieOptions);
+      // const { accessToken, ...accessCookieOptions } = accessTokenConfig;
+      this.authService.saveHashedRefreshToken(
+        refreshCookieConfig.refreshToken,
+        user.id,
+      );
+      // 레디스 써서 해결: 구글 로그인할 때 DB를 보지않고 레디스를 봄 ->
+      // 레디스에서 조립하고 DB 찌른다 ~ 기존 유저들은?
+      // 레디스에서 없으면 DB까지 확인하면 레디스
+      res.cookie(
+        'access_token',
+        accessCookieConfig.accessToken,
+        accessCookieConfig.accessCookieOptions,
+      );
+      res.cookie(
+        'refresh_token',
+        refreshCookieConfig.refreshToken,
+        refreshCookieConfig.refreshCookieOptions,
+      );
       res.redirect('http://localhost:3000');
     } catch (e: any) {
       this.logger.error(e.message);
@@ -67,7 +77,10 @@ export class AuthController {
     res.clearCookie('access_token', resetCookieOptions);
     res.clearCookie('refresh_token', resetCookieOptions);
     await this.authService.resetRefreshToken(user.id);
-    return 'hello';
+    return {
+      status: 400,
+      msg: 'OK',
+    };
   }
 
   @UseGuards(AuthGuard('jwt-access'))
@@ -84,16 +97,20 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt-refresh'))
   @Get('google/refresh')
   async reissuanceAccessToken(
-    @Req() req: Request,
+    @RequestUser() user: User,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const { accessToken, ...accessCookieOptions } =
-      await this.authService.getAccessTokenCookieConfig(req.user as User);
-    res.cookie('access_token', accessToken, accessCookieOptions);
+    const accessCookieConfig =
+      await this.authService.getAccessTokenCookieConfig(user);
+    res.cookie(
+      'access_token',
+      accessCookieConfig.accessToken,
+      accessCookieConfig.accessCookieOptions,
+    );
     return {
       message: 'reissue access token',
       statusCode: HttpStatus.OK,
-      user: req.user,
+      user: user,
     };
   }
 }
