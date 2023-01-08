@@ -1,18 +1,10 @@
-import {
-  BadRequestException,
-  HttpException,
-  HttpStatus,
-  Injectable,
-  Logger,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { compare, hash } from 'bcrypt';
 import { CookieOptions } from 'express';
 import { User } from 'src/entities/user.entity';
-import { CookieOptionsInterface } from 'src/types/cookie-options.interface';
 import {
   AccessCookieConfig,
   RefreshCookieConfig,
@@ -41,7 +33,6 @@ export class AuthService {
       email: user.email,
     };
 
-    // static bean으로 만들어서 모듈에 넣기, 불변 상수들을 쓴다.
     const accessTokenOptions = {
       secret: this.configService.get<string>('JWT_ACCESS_TOKEN_SECRET'),
       expiresIn: minuteToMilisecond(
