@@ -11,6 +11,7 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
 import { Request, Response } from 'express';
 import { RequestUser } from 'src/decorator/request-user.decorator';
@@ -20,7 +21,10 @@ import { GoogleOauthGaurd } from './guards/google-oauth.guard';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private readonly configService: ConfigService,
+  ) {}
 
   private logger: Logger = new Logger(AuthController.name);
 
@@ -60,7 +64,7 @@ export class AuthController {
         refreshCookieConfig.refreshToken,
         refreshCookieConfig.refreshCookieOptions,
       );
-      res.redirect('http://localhost:3000');
+      res.redirect(this.configService.get<string>('FRONTEND_URL'));
     } catch (e: any) {
       this.logger.error(e.message);
       throw new InternalServerErrorException(e.message ?? 'error has occurred');
