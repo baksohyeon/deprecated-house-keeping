@@ -6,6 +6,7 @@ import {
   HttpStatus,
   InternalServerErrorException,
   Logger,
+  Post,
   Redirect,
   Req,
   Res,
@@ -97,7 +98,7 @@ export class AuthController {
   }
 
   @UseGuards(AuthGuard('jwt-refresh'))
-  @Get('google/refresh')
+  @Post('google/refresh')
   async reissuanceAccessToken(
     @RequestUser() user: User,
     @Res({ passthrough: true }) res: Response,
