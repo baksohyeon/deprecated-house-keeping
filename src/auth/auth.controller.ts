@@ -46,14 +46,11 @@ export class AuthController {
       const refreshCookieConfig =
         await this.authService.getRefreshTokenCookieConfig(user);
 
-      // const { accessToken, ...accessCookieOptions } = accessTokenConfig;
       this.authService.saveHashedRefreshToken(
         refreshCookieConfig.refreshToken,
         user.id,
       );
-      // 레디스 써서 해결: 구글 로그인할 때 DB를 보지않고 레디스를 봄 ->
-      // 레디스에서 조립하고 DB 찌른다 ~ 기존 유저들은?
-      // 레디스에서 없으면 DB까지 확인하면 레디스
+
       res.cookie(
         'access_token',
         accessCookieConfig.accessToken,
@@ -81,6 +78,7 @@ export class AuthController {
     res.clearCookie('access_token', resetCookieOptions);
     res.clearCookie('refresh_token', resetCookieOptions);
     await this.authService.resetRefreshToken(user.id);
+
     return {
       status: 400,
       msg: 'OK',
