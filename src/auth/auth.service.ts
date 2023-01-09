@@ -1,6 +1,6 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
+import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { compare, hash } from 'bcrypt';
 import { CookieOptions } from 'express';
@@ -27,21 +27,31 @@ export class AuthService {
 
   private readonly logger = new Logger(AuthService.name);
 
-  async getAccessTokenCookieConfig(user: User): Promise<AccessCookieConfig> {
-    const payload = {
-      sub: user.id,
-      email: user.email,
-    };
-
-    const accessTokenOptions = {
+  private getTokenOptions(tokenType: 'access' | 'refresh'): JwtSignOptions {
+    const accessTokenOptions: JwtSignOptions = {
       secret: this.configService.get<string>('JWT_ACCESS_TOKEN_SECRET'),
       expiresIn: minuteToMilisecond(
         this.configService.get<number>('JWT_ACCESS_TOKEN_EXPIRES_IN_MINUTES'),
       ),
     };
 
-    const accessToken = this.jwtService.sign(payload, accessTokenOptions);
+    const refreshTokenOptions: JwtSignOptions = {
+      secret: this.configService.get<string>('JWT_REFRESH_TOKEN_SECRET'),
+      expiresIn: minuteToMilisecond(
+        this.configService.get<number>('JWT_REFRESH_TOKEN_EXPIRES_IN_DAYS'),
+      ),
+    };
+    if (tokenType === 'access') {
+      return accessTokenOptions;
+    }
+    if (tokenType === 'refresh') {
+      return refreshTokenOptions;
+    }
+  }
 
+  private getCookieOptions(
+    tokenType: 'access' | 'refresh' | 'reset',
+  ): CookieOptions {
     const accessCookieOptions: CookieOptions = {
       maxAge: minuteToMilisecond(
         this.configService.get<number>('JWT_ACCESS_TOKEN_EXPIRES_IN_MINUTES'),
@@ -50,6 +60,39 @@ export class AuthService {
       secure: false,
       httpOnly: false,
     };
+
+    const refreshCookieOptions: CookieOptions = {
+      maxAge: dayToMilisecond(
+        this.configService.get<number>('JWT_REFRESH_TOKEN_EXPIRES_IN_DAYS'),
+      ),
+      sameSite: true,
+      secure: false,
+    };
+
+    const resetCookieOptions: CookieOptions = {
+      maxAge: 0,
+      sameSite: true,
+      secure: false,
+    };
+    if (tokenType === 'access') {
+      return accessCookieOptions;
+    }
+    if ((tokenType = 'refresh')) {
+      return refreshCookieOptions;
+    }
+    if ((tokenType = 'reset')) {
+      resetCookieOptions;
+    }
+  }
+
+  async getAccessTokenCookieConfig(user: User): Promise<AccessCookieConfig> {
+    const payload = {
+      sub: user.id,
+      email: user.email,
+    };
+    const accessTokenOptions = this.getTokenOptions('access');
+    const accessToken = this.jwtService.sign(payload, accessTokenOptions);
+    const accessCookieOptions: CookieOptions = this.getCookieOptions('access');
     return {
       accessToken: accessToken,
       accessCookieOptions,
@@ -61,20 +104,10 @@ export class AuthService {
       sub: user.id,
     };
 
-    const refreshTokenOptions = {
-      secret: this.configService.get<string>('JWT_REFRESH_TOKEN_SECRET'),
-      expiresIn: minuteToMilisecond(
-        this.configService.get<number>('JWT_REFRESH_TOKEN_EXPIRES_IN_DAYS'),
-      ),
-    };
+    const refreshTokenOptions: JwtSignOptions = this.getTokenOptions('refresh');
     const refreshToken = this.jwtService.sign(payload, refreshTokenOptions);
-    const refreshCookieOptions: CookieOptions = {
-      maxAge: dayToMilisecond(
-        this.configService.get<number>('JWT_REFRESH_TOKEN_EXPIRES_IN_DAYS'),
-      ),
-      sameSite: true,
-      secure: false,
-    };
+    const refreshCookieOptions: CookieOptions =
+      this.getCookieOptions('refresh');
 
     return {
       refreshToken: refreshToken,
@@ -83,11 +116,7 @@ export class AuthService {
   }
 
   resetCookieOptions(): CookieOptions {
-    return {
-      maxAge: 0,
-      sameSite: true,
-      secure: false,
-    };
+    return this.getCookieOptions('reset');
   }
 
   async saveHashedRefreshToken(
