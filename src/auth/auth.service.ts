@@ -1,4 +1,10 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import {
+  CACHE_MANAGER,
+  Inject,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -9,10 +15,6 @@ import {
   AccessCookieConfig,
   RefreshCookieConfig,
 } from 'src/types/cookie-config.interface';
-import {
-  dayToMilisecond,
-  minuteToMilisecond,
-} from 'src/util/units-of-time-conversion.util';
 import { Repository } from 'typeorm';
 import { LoginRequestUserDto } from './dto/login-request.dto';
 import ms from 'ms';
@@ -20,6 +22,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { AccessTokenUserPayload } from 'src/types/access-token-user-payload.interface';
 import { FreshTokens } from 'src/types/fresh-tokens.interface';
 import { AccessTokenPayload } from 'src/types/type';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class AuthService {
@@ -44,7 +47,7 @@ export class AuthService {
     const refreshToken = this.jwtService.sign(refreshTokenPayload, {
       secret: this.configService.get<string>('JWT_REFRESH_TOKEN_SECRET'),
       expiresIn: ms(
-        this.configService.get<number>('JWT_REFRESH_TOKEN_EXPIRES_IN_DAYS'),
+        this.configService.get<number>('JWT_REFRESH_TOKEN_EXPIRES_IN'),
       ),
       issuer: 'dorito',
       audience: [this.configService.get<string>('FRONTEND_URL')],
@@ -98,7 +101,7 @@ export class AuthService {
       const accessJwtSignOptions: JwtSignOptions = {
         secret: this.configService.get<string>('JWT_ACCESS_TOKEN_SECRET'),
         expiresIn: ms(
-          this.configService.get<number>('JWT_ACCESS_TOKEN_EXPIRES_IN_MINUTES'),
+          this.configService.get<number>('JWT_ACCESS_TOKEN_EXPIRES_IN'),
         ),
       };
       return accessJwtSignOptions;
@@ -108,7 +111,7 @@ export class AuthService {
       const refreshJwtSignOptions: JwtSignOptions = {
         secret: this.configService.get<string>('JWT_REFRESH_TOKEN_SECRET'),
         expiresIn: ms(
-          this.configService.get<number>('JWT_REFRESH_TOKEN_EXPIRES_IN_DAYS'),
+          this.configService.get<number>('JWT_REFRESH_TOKEN_EXPIRES_IN'),
         ),
         issuer: 'dorito',
         audience: [this.configService.get<string>('FRONTEND_URL')],
@@ -124,7 +127,7 @@ export class AuthService {
     if (tokenType === 'access') {
       const accessCookieOptions: CookieOptions = {
         maxAge: ms(
-          this.configService.get<string>('JWT_ACCESS_TOKEN_EXPIRES_IN_MINUTES'),
+          this.configService.get<string>('JWT_ACCESS_TOKEN_EXPIRES_IN'),
         ),
         sameSite: 'lax',
         secure: false,
@@ -135,7 +138,7 @@ export class AuthService {
     if ((tokenType = 'refresh')) {
       const refreshCookieOptions: CookieOptions = {
         maxAge: ms(
-          this.configService.get<string>('JWT_REFRESH_TOKEN_EXPIRES_IN_DAYS'),
+          this.configService.get<string>('JWT_REFRESH_TOKEN_EXPIRES_IN'),
         ),
         sameSite: true,
         secure: false,

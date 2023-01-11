@@ -1,13 +1,12 @@
 import {
+  CACHE_MANAGER,
   Controller,
   Get,
-  Header,
-  HttpException,
   HttpStatus,
+  Inject,
   InternalServerErrorException,
   Logger,
   Post,
-  Redirect,
   Req,
   Res,
   UseGuards,
@@ -23,6 +22,8 @@ import { GoogleOauthGaurd } from './guards/google-oauth.guard';
 @Controller('auth')
 export class AuthController {
   constructor(
+    @Inject(CACHE_MANAGER)
+    private cacheManager: Cache,
     private authService: AuthService,
     private readonly configService: ConfigService,
   ) {}
