@@ -9,10 +9,10 @@ export type FreshTokens = {
 };
 
 export type FreshTokensWithUser = FreshTokens & {
-  userId: number;
+  userId: string;
 };
 
-export type Role = 'ROLE_ADMIN' | 'ROLE_USER';
+// export type Role = 'ROLE_ADMIN' | 'ROLE_USER';
 
 export type TokenType = 'access' | 'refresh';
 
@@ -32,9 +32,9 @@ export type TokenPayload = Partial<RegisterdClaims> & {
 
 export interface AccessTokenUserPayload {
   isVerified: boolean;
-  role: Role;
+  // role: Role;
   username: string;
-  userId: number;
+  userId: string;
 }
 
 export type AccessTokenPayload = TokenPayload &
@@ -43,7 +43,7 @@ export type AccessTokenPayload = TokenPayload &
   };
 
 export type RefreshTokenPayload = TokenPayload & {
-  userId: number;
+  userId: string;
 };
 
 export type UserLoginRequestPayload = {
@@ -99,5 +99,5 @@ export type UserType = {
   username: string;
   isVerified: boolean;
   hashedPassword: string;
-  role: Role;
+  // role: Role;
 };
