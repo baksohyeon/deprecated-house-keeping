@@ -30,7 +30,8 @@ export class JwtRefreshStrategy extends PassportStrategy(
   }
   private readonly logger = new Logger(JwtRefreshStrategy.name);
 
-  async validate(req: Request, payload: JwtPayload): Promise<User> {
+  //TODO: strategy 로직 수정
+  async validate(req: Request, payload: JwtPayload): Promise<any> {
     if (!req.cookies) {
       throw new HttpException('cookie 못읽어옴', HttpStatus.NOT_FOUND);
     }
@@ -40,6 +41,6 @@ export class JwtRefreshStrategy extends PassportStrategy(
     this.logger.log(payload);
     const refreshToken: string = refreshTokenCookieExtractor(req);
 
-    return authService.checkRefreshGetUser(refreshToken, payload.sub);
+    return Promise<User>;
   }
 }

@@ -9,7 +9,6 @@ import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
 import { request, Request } from 'express';
 import { accessTokenCookieExtractor } from 'src/util/cookie-extractor.util';
-import { AccessTokenUserPayload } from 'src/types/access-token-user-payload.interface';
 import { AccessTokenPayload } from 'src/types/type';
 import { AuthService } from '../auth.service';
 
