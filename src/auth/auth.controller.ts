@@ -22,8 +22,6 @@ import { GoogleOauthGaurd } from './guards/google-oauth.guard';
 @Controller('auth')
 export class AuthController {
   constructor(
-    @Inject(CACHE_MANAGER)
-    private cacheManager: Cache,
     private authService: AuthService,
     private readonly configService: ConfigService,
   ) {}
@@ -42,32 +40,8 @@ export class AuthController {
     @RequestUser() user: User,
     @Res({ passthrough: true }) res: Response,
   ) {
-    try {
-      const accessCookieConfig =
-        await this.authService.getAccessTokenCookieConfig(user);
-      const refreshCookieConfig =
-        await this.authService.getRefreshTokenCookieConfig(user);
-
-      this.authService.saveHashedRefreshToken(
-        refreshCookieConfig.refreshToken,
-        user.id,
-      );
-
-      res.cookie(
-        'access_token',
-        accessCookieConfig.accessToken,
-        accessCookieConfig.accessCookieOptions,
-      );
-      res.cookie(
-        'refresh_token',
-        refreshCookieConfig.refreshToken,
-        refreshCookieConfig.refreshCookieOptions,
-      );
-      res.redirect(this.configService.get<string>('FRONTEND_URL'));
-    } catch (e: any) {
-      this.logger.error(e.message);
-      throw new InternalServerErrorException(e.message ?? 'error has occurred');
-    }
+    //TODO: 로직 수정
+    //TODO: 리다이렉트
   }
 
   @UseGuards(AuthGuard('jwt-refresh'))
@@ -76,15 +50,7 @@ export class AuthController {
     @RequestUser() user: User,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const resetCookieOptions = this.authService.resetCookieOptions();
-    res.clearCookie('access_token', resetCookieOptions);
-    res.clearCookie('refresh_token', resetCookieOptions);
-    await this.authService.resetRefreshToken(user.id);
-
-    return {
-      status: 400,
-      msg: 'OK',
-    };
+    //TODO: 쿠키 리셋
   }
 
   @UseGuards(AuthGuard('jwt-access'))
@@ -104,17 +70,6 @@ export class AuthController {
     @RequestUser() user: User,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const accessCookieConfig =
-      await this.authService.getAccessTokenCookieConfig(user);
-    res.cookie(
-      'access_token',
-      accessCookieConfig.accessToken,
-      accessCookieConfig.accessCookieOptions,
-    );
-    return {
-      message: 'reissue access token',
-      statusCode: HttpStatus.OK,
-      user: user,
-    };
+    //TODO: refresh 토큰 확인하고 access 토큰 재발급
   }
 }
