@@ -100,4 +100,47 @@ export class AuthService {
       refreshToken,
     };
   }
+  // check if the refresh token has the same id as the refreshTokenId field in the decoded access token.
+  async reissueAccessToken(expiredToken: string, refreshToken: string) {
+    const refreshTokenPayload = this.jwtService.decode(
+      refreshToken,
+    ) as RefreshTokenPayload;
+    // get refresh token's state from redis
+    const refreshTokenState: redisPayload = await this.cacheManager.get(
+      refreshTokenPayload.jti,
+    );
+
+    const oldAccessTokenPayload: AccessTokenPayload = this.jwtService.verify(
+      expiredToken,
+      {
+        secret: this.configService.get<string>('JWT_ACCESS_TOKEN_SECRET'),
+        ignoreExpiration: true,
+      },
+    );
+
+    const isMatchedToken =
+      oldAccessTokenPayload.refreshTokenId === refreshTokenPayload.jti;
+
+    if (refreshTokenState?.isActive && isMatchedToken) {
+      const newAccessTokenUserPayload: AccessTokenUserPayload = {
+        userId: oldAccessTokenPayload.userId,
+        isVerified: oldAccessTokenPayload.isVerified,
+        username: oldAccessTokenPayload.username,
+      };
+      const newAccessToken = this.generateAccessToken(
+        newAccessTokenUserPayload,
+        refreshTokenPayload.jti,
+      );
+      return {
+        status: 'success',
+        data: newAccessToken,
+      };
+    }
+    return {
+      status: 'fail',
+      message: 'Invalid token',
+      code: HttpStatus.NOT_ACCEPTABLE,
+      errors: [],
+    };
+  }
 }
