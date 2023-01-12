@@ -42,7 +42,7 @@ export class AuthService {
 
   private readonly logger = new Logger(AuthService.name);
 
-  private generateRefreshToken(payload: AccessTokenUserPayload) {
+  private async generateRefreshToken(payload: AccessTokenUserPayload) {
     // include the necessary data in the token payload
     const refreshTokenPayload = {
       userId: payload.userId,
@@ -66,7 +66,7 @@ export class AuthService {
     };
   }
 
-  private generateAccessToken(
+  private async generateAccessToken(
     payload: AccessTokenUserPayload,
     refreshTokenId: string,
   ) {
@@ -80,7 +80,7 @@ export class AuthService {
     const accessToken = this.jwtService.sign(accessTokenPayload, {
       secret: this.configService.get<string>('JWT_ACCESS_TOKEN_SECRET'),
       expiresIn: ms(
-        this.configService.get<number>('JWT_ACCESS_TOKEN_EXPIRES_IN_MINUTES'),
+        this.configService.get<number>('JWT_ACCESS_TOKEN_EXPIRES_IN'),
       ),
       issuer: 'dorito',
       audience: [this.configService.get<string>('FRONTEND_URL')],
@@ -92,9 +92,12 @@ export class AuthService {
     };
   }
 
-  generateTokens(payload: AccessTokenUserPayload): FreshTokens {
-    const refreshToken = this.generateRefreshToken(payload);
-    const accessToken = this.generateAccessToken(payload, refreshToken.jti);
+  async generateTokens(payload: AccessTokenUserPayload): Promise<FreshTokens> {
+    const refreshToken = await this.generateRefreshToken(payload);
+    const accessToken = await this.generateAccessToken(
+      payload,
+      refreshToken.jti,
+    );
     return {
       accessToken,
       refreshToken,
@@ -142,5 +145,50 @@ export class AuthService {
       code: HttpStatus.NOT_ACCEPTABLE,
       errors: [],
     };
+  }
+
+  async addAccessTokenToBucket(payload) {
+    //namespace: access token redis bucket
+    // key: access token jit
+    // value: isAcive boolean
+    this.cacheManager.set(
+      `accessToken-jit:${payload.accessToken.jit}`,
+      {
+        isActive: true,
+      },
+      ms(this.configService.get<string>('JWT_ACCESS_TOKEN_SECRET_EXPIRES_IN')) /
+        1000,
+    );
+  }
+
+  // 레디스 관련 로직
+  async addRefreshTokenRedisBucket(payload) {
+    //namespace: refresh token redis bucket
+    // key: refresh token jit
+    // value: isAcive boolean
+    this.cacheManager.set(
+      `refreshToken-jit:${payload.refreshToken.jit}`,
+      {
+        isActive: true,
+      },
+      ms(
+        this.configService.get<string>('JWT_REFRESH_TOKEN_SECRET_EXPIRES_IN'),
+      ) / 1000,
+    );
+  }
+
+  async addUserRedisBucket(userId: string, refreshTokenId: string) {
+    //namespace: loggedInUserToBucket
+    // key: userId
+    // value: {tokens: [refreshTokenId]}
+    this.cacheManager.set(
+      `loggedInUser:${userId}`,
+      {
+        tokens: [refreshTokenId],
+      },
+      ms(
+        this.configService.get<string>('JWT_REFRESH_TOKEN_SECRET_EXPIRES_IN'),
+      ) / 1000,
+    );
   }
 }
