@@ -31,7 +31,7 @@ export type TokenPayload = Partial<RegisterdClaims> & {
 };
 
 export interface AccessTokenUserPayload {
-  isVerified: boolean;
+  // isVerified: boolean;
   // role: Role;
   username: string;
   userId: string;

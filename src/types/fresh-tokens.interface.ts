@@ -1,4 +1,4 @@
-interface Token {
+export interface Token {
   token: string;
   jti: string;
 }

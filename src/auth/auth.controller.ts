@@ -6,6 +6,7 @@ import {
   Inject,
   InternalServerErrorException,
   Logger,
+  Param,
   Post,
   Req,
   Res,
@@ -57,12 +58,14 @@ export class AuthController {
   }
 
   @UseGuards(AuthGuard('jwt-refresh'))
-  @Get('/google/logout')
+  @Post('/google/profile/logout/:userId')
   async logOut(
     @RequestUser() user: any,
     @Res({ passthrough: true }) res: Response,
+    @Param('userId') userId: string,
   ) {
     const refreshToken = user.data.tokens.refreshToken.token;
+    this.authService.revokeRefreshTokensAtRedis(userId);
   }
 
   @UseGuards(AuthGuard('jwt-access'))

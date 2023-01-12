@@ -35,7 +35,6 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     const payloadExceptUserId = {
       email: emails[0].value,
       username: `${name.familyName} ${name.givenName}`,
-      isVerified: false,
     };
 
     const userInfo = {
@@ -52,8 +51,10 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
         ...payloadExceptUserId,
         userId: newUser.id,
       } as AccessTokenUserPayload;
-      const tokens = this.authService.generateTokens(userPayload);
+      const tokens = await this.authService.generateTokens(userPayload);
       //TODO: 더 명시적인 타입과 변수명으로 수정하기
+      //TODO: redis에 토큰 저장하기
+      await this.authService.setTokenAndIdToRedis(tokens);
       const result = {
         message: 'Create new user and Login successful',
         data: {
@@ -68,6 +69,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       userId: user.id,
     } as AccessTokenUserPayload;
     const tokens = await this.authService.generateTokens(userPayload);
+    await this.authService.setTokenAndIdToRedis(tokens);
     const result = {
       user,
       message: 'already signed in user and login successful',

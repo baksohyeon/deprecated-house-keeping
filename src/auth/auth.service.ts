@@ -129,7 +129,6 @@ export class AuthService {
     if (refreshTokenState?.isActive && isMatchedToken) {
       const newAccessTokenUserPayload: AccessTokenUserPayload = {
         userId: oldAccessTokenPayload.userId,
-        isVerified: oldAccessTokenPayload.isVerified,
         username: oldAccessTokenPayload.username,
       };
       const newAccessToken = this.generateAccessToken(
@@ -149,33 +148,24 @@ export class AuthService {
     };
   }
 
-  async setAccessTokenAndIdToRedis(payload: any) {
+  async setTokenAndIdToRedis(payload: FreshTokens) {
     //namespace: access token redis bucket
     // key: access token jit
     // value: isAcive boolean
     this.cacheManager.set(
-      `accessToken-jit:${payload.accessToken.jit}`,
+      `accessToken-jit:${payload.accessToken.jti}`,
       {
         isActive: true,
       },
-      ms(this.configService.get<string>('JWT_ACCESS_TOKEN_SECRET_EXPIRES_IN')) /
-        1000,
+      ms(this.configService.get<string>('JWT_ACCESS_TOKEN_EXPIRES_IN')) / 1000,
     );
-  }
 
-  // 레디스 관련 로직
-  async setRefreshTokenAndIdToRedis(payload: any) {
-    //namespace: refresh token redis bucket
-    // key: refresh token jit
-    // value: isAcive boolean
     this.cacheManager.set(
-      `refreshToken-jit:${payload.refreshToken.jit}`,
+      `refreshToken-jit:${payload.refreshToken.jti}`,
       {
         isActive: true,
       },
-      ms(
-        this.configService.get<string>('JWT_REFRESH_TOKEN_SECRET_EXPIRES_IN'),
-      ) / 1000,
+      ms(this.configService.get<string>('JWT_REFRESH_TOKEN_EXPIRES_IN')) / 1000,
     );
   }
 
@@ -202,10 +192,12 @@ export class AuthService {
   }
 
   async getRefreshTokenIdsByUserIdFromRedis(userId: string): Promise<string> {
-    return this.cacheManager.get(userId);
+    return this.cacheManager.get(`loggedInUser:${userId}`);
   }
 
-  async validateAccessTokenWithStatus(decoded: AccessTokenPayload) {
+  async validateAccessTokenWithStatus(
+    decoded: AccessTokenPayload,
+  ): Promise<boolean> {
     // access 토큰의 refresh 토큰이 아직 살아있는지 체크함
     // 레디스에서 access 토큰 상태를 확인하고 리턴함
     // 만약 레디스 내 access 토큰이 저장되어있지 않으면 -> 401 Forbidden 에러
@@ -219,9 +211,9 @@ export class AuthService {
     if (refreshTokenActiveState?.isAcive) {
       const accessTokenActiveState: any =
         await this.getStatusOfTokenByTokenIdFromRedis('access', decoded.jti);
-      return { isValid: accessTokenActiveState.isAcive };
+      return accessTokenActiveState.isAcive;
     }
-    return { isValid: false };
+    return false;
   }
 
   async dropRefreshTokenAndStatusFromRedis(jti: string) {

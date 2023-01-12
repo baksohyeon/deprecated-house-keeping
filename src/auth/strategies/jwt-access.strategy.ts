@@ -1,4 +1,9 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -16,7 +21,6 @@ import { AuthService } from '../auth.service';
 export class JwtAuthStrategy extends PassportStrategy(Strategy, 'jwt-access') {
   constructor(
     readonly configService: ConfigService,
-    private readonly userService: UserService,
     private readonly authService: AuthService,
   ) {
     super({
@@ -30,10 +34,13 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy, 'jwt-access') {
   private logger: Logger = new Logger(this.name);
 
   async validate(jwtPayload: AccessTokenPayload, done: VerifiedCallback) {
-    const user = await this.userService.findUserById('1');
-    if (!user || jwtPayload.tokenType !== 'access') {
-      throw new UnauthorizedException('Token is invalid');
+    const isActive = await this.authService.validateAccessTokenWithStatus(
+      jwtPayload,
+    );
+    if (!isActive) {
+      throw new ForbiddenException('access token is not valid');
     }
-    return done(null, user);
+    const userId = jwtPayload.userId;
+    done(null, userId);
   }
 }
