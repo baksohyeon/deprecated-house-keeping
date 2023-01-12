@@ -3,6 +3,8 @@ import { ConfigType } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Profile, Strategy, VerifyCallback } from 'passport-google-oauth20';
 import { googleConfiguration } from 'src/config/google.config';
+import { User } from 'src/entities/user.entity';
+import { AccessTokenPayload, AccessTokenUserPayload } from 'src/types/type';
 import { UserService } from 'src/user/user.service';
 import { AuthService } from '../auth.service';
 import { LoginRequestUserDto } from '../dto/login-request.dto';
@@ -30,16 +32,47 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     done: VerifyCallback,
   ): Promise<any> {
     const { name, emails } = profile;
+    const payloadExceptUserId = {
+      email: emails[0].value,
+      username: `${name.familyName} ${name.givenName}`,
+      isVerified: false,
+    };
+
     const userInfo = {
       email: emails[0].value,
       username: `${name.familyName} ${name.givenName}`,
     } as LoginRequestUserDto;
 
-    const user = await this.userService.findUserByEmail(userInfo.email);
+    const user = (await this.userService.findUserByEmail(
+      userInfo.email,
+    )) as User;
     if (!user) {
-      const newUser = await this.userService.createUser(userInfo);
-      done(null, newUser);
+      const newUser: User = await this.userService.createUser(userInfo);
+      const userPayload = {
+        ...payloadExceptUserId,
+        userId: newUser.id,
+      } as AccessTokenUserPayload;
+      const tokens = this.authService.generateTokens(userPayload);
+      //TODO: 더 명시적인 타입과 변수명으로 수정하기
+      const result = {
+        message: 'Create new user and Login successful',
+        data: {
+          tokens,
+          user: newUser,
+        },
+      };
+      done(null, result);
     }
-    done(null, user);
+    const userPayload = {
+      ...payloadExceptUserId,
+      userId: user.id,
+    } as AccessTokenUserPayload;
+    const tokens = await this.authService.generateTokens(userPayload);
+    const result = {
+      user,
+      message: 'already signed in user and login successful',
+      tokens,
+    };
+    done(null, result);
   }
 }
