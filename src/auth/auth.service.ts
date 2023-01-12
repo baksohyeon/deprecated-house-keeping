@@ -25,6 +25,7 @@ import {
   AccessTokenPayload,
   AccessTokenUserPayload,
   RefreshTokenPayload,
+  TokenType,
 } from 'src/types/type';
 import { Cache } from 'cache-manager';
 import { json } from 'stream/consumers';
@@ -147,7 +148,7 @@ export class AuthService {
     };
   }
 
-  async addAccessTokenToBucket(payload) {
+  async addAccessTokenToBucket(payload: any) {
     //namespace: access token redis bucket
     // key: access token jit
     // value: isAcive boolean
@@ -162,7 +163,7 @@ export class AuthService {
   }
 
   // 레디스 관련 로직
-  async addRefreshTokenRedisBucket(payload) {
+  async addRefreshTokenRedis(payload: any) {
     //namespace: refresh token redis bucket
     // key: refresh token jit
     // value: isAcive boolean
@@ -177,7 +178,7 @@ export class AuthService {
     );
   }
 
-  async addUserRedisBucket(userId: string, refreshTokenId: string) {
+  async addUserRedis(userId: string, refreshTokenId: string) {
     //namespace: loggedInUserToBucket
     // key: userId
     // value: {tokens: [refreshTokenId]}
@@ -190,5 +191,9 @@ export class AuthService {
         this.configService.get<string>('JWT_REFRESH_TOKEN_SECRET_EXPIRES_IN'),
       ) / 1000,
     );
+  }
+
+  async getStatusOfTokenFromBucket(tokenType: TokenType, jti: string) {
+    return this.cacheManager.get(`${tokenType}Token-jit:${jti}`);
   }
 }
