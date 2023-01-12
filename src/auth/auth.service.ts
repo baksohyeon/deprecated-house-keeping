@@ -189,7 +189,7 @@ export class AuthService {
     this.cacheManager.set(
       `loggedInUser:${userId}`,
       {
-        tokens: [refreshTokenId],
+        tokenIds: [refreshTokenId],
       },
       ms(
         this.configService.get<string>('JWT_REFRESH_TOKEN_SECRET_EXPIRES_IN'),
@@ -197,11 +197,11 @@ export class AuthService {
     );
   }
 
-  async getStatusOfTokenFromRedis(tokenType: TokenType, jti: string) {
+  async getStatusOfTokenByTokenIdFromRedis(tokenType: TokenType, jti: string) {
     return this.cacheManager.get(`${tokenType}Token-jit:${jti}`);
   }
 
-  async getRefreshTokensIdByUserIdRedis(userId: string): Promise<string> {
+  async getRefreshTokenIdsByUserIdFromRedis(userId: string): Promise<string> {
     return this.cacheManager.get(userId);
   }
 
@@ -210,18 +210,32 @@ export class AuthService {
     // 레디스에서 access 토큰 상태를 확인하고 리턴함
     // 만약 레디스 내 access 토큰이 저장되어있지 않으면 -> 401 Forbidden 에러
 
-    const refreshTokenActiveState: any = await this.getStatusOfTokenFromRedis(
-      'refresh',
-      decoded.refreshTokenId,
-    );
+    const refreshTokenActiveState: any =
+      await this.getStatusOfTokenByTokenIdFromRedis(
+        'refresh',
+        decoded.refreshTokenId,
+      );
 
     if (refreshTokenActiveState?.isAcive) {
-      const accessTokenActiveState: any = await this.getStatusOfTokenFromRedis(
-        'access',
-        decoded.jti,
-      );
+      const accessTokenActiveState: any =
+        await this.getStatusOfTokenByTokenIdFromRedis('access', decoded.jti);
       return { isValid: accessTokenActiveState.isAcive };
     }
     return { isValid: false };
+  }
+
+  async dropRefreshTokenAndStatusFromRedis(jti: string) {
+    await this.cacheManager.del(`refreshToken-jit:${jti}`);
+  }
+
+  // revoke all of user's refresh tokens
+  async revokeRefreshTokensAtRedis(userId: string) {
+    // value ~ tokens: [refreshTokenId],
+    const refreshTokenList: any =
+      await this.getRefreshTokenIdsByUserIdFromRedis(`loggedInUser:${userId}`);
+    const refreshTokenIds = refreshTokenList.tokenIds;
+    for (let refreshTokenId of refreshTokenIds) {
+      await this.dropRefreshTokenAndStatusFromRedis(refreshTokenId);
+    }
   }
 }
