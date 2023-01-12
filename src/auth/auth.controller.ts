@@ -14,9 +14,11 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
 import { Request, Response } from 'express';
+import ms from 'ms';
 import { RequestUser } from 'src/decorator/request-user.decorator';
 import { User } from 'src/entities/user.entity';
 import { AuthService } from './auth.service';
+import { LoginRequestUserDto } from './dto/login-request.dto';
 import { GoogleOauthGaurd } from './guards/google-oauth.guard';
 
 @Controller('auth')
@@ -37,20 +39,30 @@ export class AuthController {
   @UseGuards(GoogleOauthGaurd)
   @Get('google/redirect')
   async googleAuthCallback(
-    @RequestUser() user: User,
+    @RequestUser() data: any,
     @Res({ passthrough: true }) res: Response,
   ) {
-    //TODO: 로직 수정
-    //TODO: 리다이렉트
+    res.cookie('x-refresh-token', data.tokens.refreshToken.token, {
+      path: 'api/auth/google/refresh',
+      maxAge: ms(this.configService.get<string>('JWT_ACCESS_TOKEN_EXPIRES_IN')),
+      secure: false, // only in development
+    });
+
+    const accessToken = data.tokens.accessToken.token;
+    const refreshToken = data.tokens.refreshToken.token;
+    return {
+      accessToken,
+      refreshToken,
+    };
   }
 
   @UseGuards(AuthGuard('jwt-refresh'))
   @Get('/google/logout')
   async logOut(
-    @RequestUser() user: User,
+    @RequestUser() user: any,
     @Res({ passthrough: true }) res: Response,
   ) {
-    //TODO: 쿠키 리셋
+    const refreshToken = user.data.tokens.refreshToken.token;
   }
 
   @UseGuards(AuthGuard('jwt-access'))
