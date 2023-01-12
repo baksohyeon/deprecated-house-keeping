@@ -25,6 +25,7 @@ import {
   AccessTokenPayload,
   AccessTokenUserPayload,
   RefreshTokenPayload,
+  TokenRedisState,
   TokenType,
 } from 'src/types/type';
 import { Cache } from 'cache-manager';
@@ -148,7 +149,7 @@ export class AuthService {
     };
   }
 
-  async addAccessTokenToBucket(payload: any) {
+  async setAccessTokenAndIdToRedis(payload: any) {
     //namespace: access token redis bucket
     // key: access token jit
     // value: isAcive boolean
@@ -163,7 +164,7 @@ export class AuthService {
   }
 
   // 레디스 관련 로직
-  async addRefreshTokenRedis(payload: any) {
+  async setRefreshTokenAndIdToRedis(payload: any) {
     //namespace: refresh token redis bucket
     // key: refresh token jit
     // value: isAcive boolean
@@ -178,7 +179,10 @@ export class AuthService {
     );
   }
 
-  async addUserRedis(userId: string, refreshTokenId: string) {
+  async setUserAndRefreshTokenIdToRedis(
+    userId: string,
+    refreshTokenId: string,
+  ) {
     //namespace: loggedInUserToBucket
     // key: userId
     // value: {tokens: [refreshTokenId]}
@@ -193,7 +197,31 @@ export class AuthService {
     );
   }
 
-  async getStatusOfTokenFromBucket(tokenType: TokenType, jti: string) {
+  async getStatusOfTokenFromRedis(tokenType: TokenType, jti: string) {
     return this.cacheManager.get(`${tokenType}Token-jit:${jti}`);
+  }
+
+  async getRefreshTokensIdByUserIdRedis(userId: string): Promise<string> {
+    return this.cacheManager.get(userId);
+  }
+
+  async validateAccessTokenWithStatus(decoded: AccessTokenPayload) {
+    // access 토큰의 refresh 토큰이 아직 살아있는지 체크함
+    // 레디스에서 access 토큰 상태를 확인하고 리턴함
+    // 만약 레디스 내 access 토큰이 저장되어있지 않으면 -> 401 Forbidden 에러
+
+    const refreshTokenActiveState: any = await this.getStatusOfTokenFromRedis(
+      'refresh',
+      decoded.refreshTokenId,
+    );
+
+    if (refreshTokenActiveState?.isAcive) {
+      const accessTokenActiveState: any = await this.getStatusOfTokenFromRedis(
+        'access',
+        decoded.jti,
+      );
+      return { isValid: accessTokenActiveState.isAcive };
+    }
+    return { isValid: false };
   }
 }
