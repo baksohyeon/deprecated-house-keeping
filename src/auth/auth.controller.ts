@@ -37,6 +37,11 @@ export class AuthController {
     // Guard redirects
   }
 
+  @Get('test')
+  test() {
+    return this.authService.test();
+  }
+
   @UseGuards(GoogleOauthGaurd)
   @Get('google/redirect')
   async googleAuthCallback(
@@ -74,10 +79,10 @@ export class AuthController {
     return req.user;
   }
 
-  @Get('test')
-  test(@Req() req: Request) {
-    return req.cookies;
-  }
+  // @Get('test')
+  // test(@Req() req: Request) {
+  //   return req.cookies;
+  // }
 
   @UseGuards(AuthGuard('jwt-refresh'))
   @Post('google/refresh')

@@ -35,7 +35,6 @@ import { redisPayload } from 'src/types/redis.type';
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectRepository(User)
     @Inject(CACHE_MANAGER)
     private cacheManager: Cache,
     private readonly jwtService: JwtService,
@@ -157,7 +156,7 @@ export class AuthService {
       {
         isActive: true,
       },
-      ms(this.configService.get<string>('JWT_ACCESS_TOKEN_EXPIRES_IN')) / 1000,
+      ms(this.configService.get<string>('JWT_ACCESS_TOKEN_EXPIRES_IN')),
     );
 
     this.cacheManager.set(
@@ -165,7 +164,7 @@ export class AuthService {
       {
         isActive: true,
       },
-      ms(this.configService.get<string>('JWT_REFRESH_TOKEN_EXPIRES_IN')) / 1000,
+      ms(this.configService.get<string>('JWT_REFRESH_TOKEN_EXPIRES_IN')),
     );
   }
 
@@ -181,9 +180,7 @@ export class AuthService {
       {
         tokenIds: [refreshTokenId],
       },
-      ms(
-        this.configService.get<string>('JWT_REFRESH_TOKEN_SECRET_EXPIRES_IN'),
-      ) / 1000,
+      ms(this.configService.get<string>('JWT_REFRESH_TOKEN_EXPIRES_IN')),
     );
   }
 
@@ -229,5 +226,9 @@ export class AuthService {
     for (let refreshTokenId of refreshTokenIds) {
       await this.dropRefreshTokenAndStatusFromRedis(refreshTokenId);
     }
+  }
+
+  async test() {
+    this.cacheManager.set('hi', 'test');
   }
 }
