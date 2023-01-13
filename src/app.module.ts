@@ -31,6 +31,40 @@ import type { ClientOpts as RedisClientOptions } from 'redis';
       }),
       isGlobal: true,
     }),
+    // CacheModule.register({
+    //   isGlobal: true,
+    //   store: redisCacheStore,
+    //   clusterConfig: {
+    //     nodes: [{ host: 'localhost', port: 6379 }],
+    //     options: { ttl: 10 },
+    //   },
+    // }),
+    // RedisModule.forRootAsync({
+    //   imports: [ConfigModule],
+    //   inject: [ConfigService],
+    //   useFactory: async (
+    //     configService: ConfigService,
+    //   ): Promise<RedisModuleOptions> => {
+    //     return {
+    //       readyLog: true,
+    //       config: {
+    //         host: 'localhost',
+    //         port: 6379,
+    //       },
+    //     };
+    //   },
+    // }),
+    // CacheModule.register<ClientOpts>({
+    //   imports: [ConfigModule],
+    //   inject: [ConfigService],
+    //   useFactory: async (configService: ConfigService) => ({
+    //     store: redisStore,
+    //     host: configService.get<string>('REDIS_HOST'),
+    //     port: configService.get<number>('REDIS_PORT'),
+    //   }),
+
+    //   isGlobal: true,
+    // }),
   ],
   controllers: [],
   providers: [],

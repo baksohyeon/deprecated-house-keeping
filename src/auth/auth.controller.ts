@@ -79,11 +79,6 @@ export class AuthController {
     return req.user;
   }
 
-  // @Get('test')
-  // test(@Req() req: Request) {
-  //   return req.cookies;
-  // }
-
   @UseGuards(AuthGuard('jwt-refresh'))
   @Post('google/refresh')
   async reissuanceAccessToken(

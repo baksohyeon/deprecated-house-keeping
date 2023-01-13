@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import cookieParser from 'cookie-parser';
 
 import { AppModule } from './app.module';

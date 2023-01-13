@@ -4,33 +4,20 @@ import {
   Inject,
   Injectable,
   Logger,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { JwtService, JwtSignOptions } from '@nestjs/jwt';
-import { InjectRepository } from '@nestjs/typeorm';
-import { compare, hash } from 'bcrypt';
-import { CookieOptions } from 'express';
-import { User } from 'src/entities/user.entity';
-import {
-  AccessCookieConfig,
-  RefreshCookieConfig,
-} from 'src/types/cookie-config.interface';
-import { Repository } from 'typeorm';
-import { LoginRequestUserDto } from './dto/login-request.dto';
+import { JwtService } from '@nestjs/jwt';
 import ms from 'ms';
 import { v4 as uuidv4 } from 'uuid';
 import { FreshTokens } from 'src/types/fresh-tokens.interface';
 import {
   AccessTokenPayload,
   AccessTokenUserPayload,
-  RefreshTokenPayload,
-  TokenRedisState,
   TokenType,
 } from 'src/types/type';
+import { Redis } from 'ioredis';
+import { InjectRedis } from '@liaoliaots/nestjs-redis';
 import { Cache } from 'cache-manager';
-import { json } from 'stream/consumers';
-import { redisPayload } from 'src/types/redis.type';
 
 @Injectable()
 export class AuthService {
@@ -106,11 +93,9 @@ export class AuthService {
   }
   // check if the refresh token has the same id as the refreshTokenId field in the decoded access token.
   async reissueAccessToken(expiredToken: string, refreshToken: string) {
-    const refreshTokenPayload = this.jwtService.decode(
-      refreshToken,
-    ) as RefreshTokenPayload;
+    const refreshTokenPayload = this.jwtService.decode(refreshToken) as any;
     // get refresh token's state from redis
-    const refreshTokenState: redisPayload = await this.cacheManager.get(
+    const refreshTokenState: any = await this.cacheManager.get(
       refreshTokenPayload.jti,
     );
 
@@ -151,7 +136,7 @@ export class AuthService {
     //namespace: access token redis bucket
     // key: access token jit
     // value: isAcive boolean
-    this.cacheManager.set(
+    await this.cacheManager.set(
       `accessToken-jit:${payload.accessToken.jti}`,
       {
         isActive: true,
@@ -159,7 +144,7 @@ export class AuthService {
       ms(this.configService.get<string>('JWT_ACCESS_TOKEN_EXPIRES_IN')),
     );
 
-    this.cacheManager.set(
+    await this.cacheManager.set(
       `refreshToken-jit:${payload.refreshToken.jti}`,
       {
         isActive: true,
