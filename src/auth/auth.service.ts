@@ -1,13 +1,6 @@
-import {
-  CACHE_MANAGER,
-  HttpStatus,
-  Inject,
-  Injectable,
-  Logger,
-} from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
+import { ConfigService, ConfigType } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import ms from 'ms';
 import { v4 as uuidv4 } from 'uuid';
 import { FreshTokens } from 'src/types/fresh-tokens.interface';
 import {
@@ -15,17 +8,18 @@ import {
   AccessTokenUserPayload,
   TokenType,
 } from 'src/types/type';
-import { Redis } from 'ioredis';
-import { InjectRedis } from '@liaoliaots/nestjs-redis';
 import { Cache } from 'cache-manager';
+import { REDIS_CACHE } from 'src/redis.module';
+import tokenConfig from 'src/config/token.config';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @Inject(CACHE_MANAGER)
+    @Inject(REDIS_CACHE)
     private cacheManager: Cache,
-    private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
+    @Inject(tokenConfig.KEY)
+    private tokenOpts: ConfigType<typeof tokenConfig>,
+    private readonly jwtService: JwtService, // private readonly configService: ConfigService,
   ) {}
 
   private readonly logger = new Logger(AuthService.name);
@@ -40,14 +34,12 @@ export class AuthService {
     // generate a unique identifier for this refresh token
     const jti = uuidv4();
     const refreshToken = this.jwtService.sign(refreshTokenPayload, {
-      secret: this.configService.get<string>('JWT_REFRESH_TOKEN_SECRET'),
-      expiresIn: ms(
-        this.configService.get<number>('JWT_REFRESH_TOKEN_EXPIRES_IN'),
-      ),
+      secret: this.tokenOpts.refresh.secret,
+      expiresIn: this.tokenOpts.refresh.expiresIn,
       issuer: 'dorito',
-      audience: [this.configService.get<string>('FRONTEND_URL')],
       jwtid: jti,
     });
+
     return {
       token: refreshToken,
       jti,
@@ -66,12 +58,9 @@ export class AuthService {
       tokenType: 'access',
     };
     const accessToken = this.jwtService.sign(accessTokenPayload, {
-      secret: this.configService.get<string>('JWT_ACCESS_TOKEN_SECRET'),
-      expiresIn: ms(
-        this.configService.get<number>('JWT_ACCESS_TOKEN_EXPIRES_IN'),
-      ),
+      secret: this.tokenOpts.access.secret,
+      expiresIn: this.tokenOpts.access.expiresIn,
       issuer: 'dorito',
-      audience: [this.configService.get<string>('FRONTEND_URL')],
       jwtid: jti,
     });
     return {
@@ -102,7 +91,7 @@ export class AuthService {
     const oldAccessTokenPayload: AccessTokenPayload = this.jwtService.verify(
       expiredToken,
       {
-        secret: this.configService.get<string>('JWT_ACCESS_TOKEN_SECRET'),
+        secret: this.tokenOpts.access.secret,
         ignoreExpiration: true,
       },
     );
@@ -141,7 +130,7 @@ export class AuthService {
       {
         isActive: true,
       },
-      ms(this.configService.get<string>('JWT_ACCESS_TOKEN_EXPIRES_IN')),
+      this.tokenOpts.access.expiresIn,
     );
 
     await this.cacheManager.set(
@@ -149,7 +138,7 @@ export class AuthService {
       {
         isActive: true,
       },
-      ms(this.configService.get<string>('JWT_REFRESH_TOKEN_EXPIRES_IN')),
+      this.tokenOpts.refresh.expiresIn,
     );
   }
 
@@ -165,7 +154,7 @@ export class AuthService {
       {
         tokenIds: [refreshTokenId],
       },
-      ms(this.configService.get<string>('JWT_REFRESH_TOKEN_EXPIRES_IN')),
+      this.tokenOpts.refresh.expiresIn,
     );
   }
 
@@ -211,9 +200,5 @@ export class AuthService {
     for (let refreshTokenId of refreshTokenIds) {
       await this.dropRefreshTokenAndStatusFromRedis(refreshTokenId);
     }
-  }
-
-  async test() {
-    this.cacheManager.set('hi', 'test');
   }
 }

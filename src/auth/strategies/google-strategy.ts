@@ -70,6 +70,10 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     } as AccessTokenUserPayload;
     const tokens = await this.authService.generateTokens(userPayload);
     await this.authService.setTokenAndIdToRedis(tokens);
+    await this.authService.setUserAndRefreshTokenIdToRedis(
+      user.id,
+      tokens.refreshToken.jti,
+    );
     const result = {
       user,
       message: 'already signed in user and login successful',

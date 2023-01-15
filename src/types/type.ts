@@ -16,7 +16,7 @@ export type FreshTokensWithUser = FreshTokens & {
 
 export type TokenType = 'access' | 'refresh';
 
-export type RegisterdClaims = {
+export type JwtRegisterdClaims = {
   iat: number;
   exp: number;
   aud: [string];
@@ -26,13 +26,11 @@ export type RegisterdClaims = {
 
 // make registered claims partial so we don't have to provide them when creating
 // new objects
-export type TokenPayload = Partial<RegisterdClaims> & {
+export type TokenPayload = Partial<JwtRegisterdClaims> & {
   tokenType: TokenType;
 };
 
 export interface AccessTokenUserPayload {
-  // isVerified: boolean;
-  // role: Role;
   username: string;
   userId: string;
 }

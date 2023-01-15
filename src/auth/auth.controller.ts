@@ -12,12 +12,13 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ConfigType } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
 import { Request, Response } from 'express';
-import ms from 'ms';
+import tokenConfig from 'src/config/token.config';
 import { RequestUser } from 'src/decorator/request-user.decorator';
 import { User } from 'src/entities/user.entity';
+import { ms } from 'src/util/convert-milliseconds.util';
 import { AuthService } from './auth.service';
 import { LoginRequestUserDto } from './dto/login-request.dto';
 import { GoogleOauthGaurd } from './guards/google-oauth.guard';
@@ -25,8 +26,9 @@ import { GoogleOauthGaurd } from './guards/google-oauth.guard';
 @Controller('auth')
 export class AuthController {
   constructor(
-    private authService: AuthService,
-    private readonly configService: ConfigService,
+    @Inject(tokenConfig.KEY)
+    private tokenOpts: ConfigType<typeof tokenConfig>,
+    private readonly authService: AuthService,
   ) {}
 
   private logger: Logger = new Logger(AuthController.name);
@@ -37,10 +39,10 @@ export class AuthController {
     // Guard redirects
   }
 
-  @Get('test')
-  test() {
-    return this.authService.test();
-  }
+  // @Get('test')
+  // test() {
+  //   return this.authService.test();
+  // }
 
   @UseGuards(GoogleOauthGaurd)
   @Get('google/redirect')
@@ -50,7 +52,7 @@ export class AuthController {
   ) {
     res.cookie('x-refresh-token', data.tokens.refreshToken.token, {
       path: 'api/auth/google/refresh',
-      maxAge: ms(this.configService.get<string>('JWT_ACCESS_TOKEN_EXPIRES_IN')),
+      maxAge: this.tokenOpts.refresh.expiresIn,
       secure: false, // only in development
     });
 
