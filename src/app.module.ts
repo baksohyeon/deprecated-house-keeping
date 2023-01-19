@@ -6,8 +6,8 @@ import { databaseConfiguration } from './config/database.config';
 import { googleConfiguration } from './config/google.config';
 import { TypeOrmConfigService } from './config/typeorm.config';
 import { UserModule } from './user/user.module';
-import { redisStore } from 'cache-manager-redis-store';
-import { RedisCacheModule } from './redis.module';
+import { RedisCacheModule } from './auth/redis/redis.module';
+import { RedisService } from './auth/redis/redis.service';
 import tokenConfig from './config/token.config';
 
 @Module({

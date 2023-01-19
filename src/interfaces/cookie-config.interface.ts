@@ -9,3 +9,9 @@ export interface RefreshCookieConfig {
   refreshToken: string;
   refreshCookieOptions: Record<string, CookieOptions>;
 }
+
+export interface CookieOptionsInterface {
+  maxAge: number;
+  secure: boolean;
+  sameSite: boolean | string;
+}

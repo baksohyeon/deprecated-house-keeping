@@ -4,18 +4,24 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Profile, Strategy, VerifyCallback } from 'passport-google-oauth20';
 import { googleConfiguration } from 'src/config/google.config';
 import { User } from 'src/entities/user.entity';
-import { AccessTokenPayload, AccessTokenUserPayload } from 'src/types/type';
+import {
+  LoginResponse,
+  loginUserInfo,
+} from 'src/interfaces/login-response.interface';
+import { RedisService } from 'src/auth/redis/redis.service';
 import { UserService } from 'src/user/user.service';
 import { AuthService } from '../auth.service';
-import { LoginRequestUserDto } from '../dto/login-request.dto';
+import { RequestLoginUserDto } from '../dto/request-login-user.dto';
+import { ResponseLoginUserDto } from '../dto/response-login-user.dto';
 // import { UserInfoDto } from '../dto/user-info.dto';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(
     @Inject(googleConfiguration.KEY)
-    private readonly googleConfig: ConfigType<typeof googleConfiguration>,
+    googleConfig: ConfigType<typeof googleConfiguration>,
     private readonly authService: AuthService,
+    private readonly redisService: RedisService,
     private readonly userService: UserService,
   ) {
     super({
@@ -32,51 +38,23 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     done: VerifyCallback,
   ): Promise<any> {
     const { name, emails } = profile;
-    const payloadExceptUserId = {
+
+    const userInfo: RequestLoginUserDto = {
       email: emails[0].value,
       username: `${name.familyName} ${name.givenName}`,
     };
 
-    const userInfo = {
-      email: emails[0].value,
-      username: `${name.familyName} ${name.givenName}`,
-    } as LoginRequestUserDto;
-
-    const user = (await this.userService.findUserByEmail(
-      userInfo.email,
-    )) as User;
-    if (!user) {
-      const newUser: User = await this.userService.createUser(userInfo);
-      const userPayload = {
-        ...payloadExceptUserId,
-        userId: newUser.id,
-      } as AccessTokenUserPayload;
-      const tokens = await this.authService.generateTokens(userPayload);
-      //TODO: 더 명시적인 타입과 변수명으로 수정하기
-      //TODO: redis에 토큰 저장하기
-      await this.authService.setTokenAndIdToRedis(tokens);
-      const result = {
-        message: 'Create new user and Login successful',
-        data: {
-          tokens,
-          user: newUser,
-        },
-      };
-      done(null, result);
-    }
-    const userPayload = {
-      ...payloadExceptUserId,
-      userId: user.id,
-    } as AccessTokenUserPayload;
-    const tokens = await this.authService.generateTokens(userPayload);
-    await this.authService.setTokenAndIdToRedis(tokens);
-    await this.authService.setUserAndRefreshTokenIdToRedis(
+    // TODO: 메서드 리팩토링 하기
+    const user = await this.userService.registerUser(userInfo);
+    const tokens = await this.authService.generateTokens(user.id);
+    await this.redisService.setFreshTokens(tokens);
+    await this.redisService.setUserAndRefreshTokenId(
       user.id,
       tokens.refreshToken.jti,
     );
-    const result = {
+    const result: LoginResponse = {
       user,
-      message: 'already signed in user and login successful',
+      message: 'login seccuess',
       tokens,
     };
     done(null, result);

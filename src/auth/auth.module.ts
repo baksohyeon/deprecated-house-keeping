@@ -12,6 +12,7 @@ import { JwtAuthStrategy } from './strategies/jwt-access.strategy';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import ms from 'ms';
 import tokenConfig from 'src/config/token.config';
+import { RedisService } from './redis/redis.service';
 
 @Module({
   imports: [
@@ -30,6 +31,12 @@ import tokenConfig from 'src/config/token.config';
     UserModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, GoogleStrategy, JwtAuthStrategy, JwtRefreshStrategy],
+  providers: [
+    AuthService,
+    GoogleStrategy,
+    JwtAuthStrategy,
+    JwtRefreshStrategy,
+    RedisService,
+  ],
 })
 export class AuthModule {}

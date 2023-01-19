@@ -9,19 +9,19 @@ import { PassportStrategy } from '@nestjs/passport';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ExtractJwt, Strategy, VerifiedCallback } from 'passport-jwt';
 import { User } from 'src/entities/user.entity';
-import { JwtPayload } from 'src/types/jwt-payload.interface';
 import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
 import { request, Request } from 'express';
 import { accessTokenCookieExtractor } from 'src/util/cookie-extractor.util';
-import { AccessTokenPayload } from 'src/types/type';
 import { AuthService } from '../auth.service';
+import { AccessTokenPayload } from 'src/interfaces/tokens.interface';
+import { RedisService } from 'src/auth/redis/redis.service';
 
 @Injectable()
 export class JwtAuthStrategy extends PassportStrategy(Strategy, 'jwt-access') {
   constructor(
     readonly configService: ConfigService,
-    private readonly authService: AuthService,
+    private readonly redisService: RedisService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -34,7 +34,7 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy, 'jwt-access') {
   private logger: Logger = new Logger(this.name);
 
   async validate(jwtPayload: AccessTokenPayload, done: VerifiedCallback) {
-    const isActive = await this.authService.validateAccessTokenWithStatus(
+    const isActive = await this.redisService.validateAccessTokenWithStatus(
       jwtPayload,
     );
     if (!isActive) {

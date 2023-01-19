@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LoginRequestUserDto } from 'src/auth/dto/login-request.dto';
+import { RequestLoginUserDto } from 'src/auth/dto/request-login-user.dto';
 import { User } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
 
@@ -19,8 +19,8 @@ export class UserService {
     return user;
   }
 
-  async createUser(userInfoDto: LoginRequestUserDto) {
-    const userObject = this.userRepository.create(userInfoDto);
+  async createUser(userInfo: RequestLoginUserDto) {
+    const userObject = this.userRepository.create(userInfo);
     return this.userRepository.save(userObject);
   }
 
@@ -28,6 +28,14 @@ export class UserService {
     const user = await this.userRepository.findOneBy({ id });
     if (!user) {
       return null;
+    }
+    return user;
+  }
+
+  async registerUser(userInfo: RequestLoginUserDto) {
+    const user = await this.findUserByEmail(userInfo.email);
+    if (!user) {
+      return this.createUser(userInfo);
     }
     return user;
   }

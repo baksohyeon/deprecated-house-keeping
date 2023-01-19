@@ -14,16 +14,13 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Exclude()
   @Index({ unique: true })
   @Column({ unique: true })
   email: string;
 
   @Column()
   username: string;
-
-  @Column({ nullable: true })
-  @Exclude()
-  hashedRefreshToken?: string;
 
   @CreateDateColumn()
   createdAt: Date;
