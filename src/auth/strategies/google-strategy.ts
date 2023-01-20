@@ -47,7 +47,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     // TODO: 메서드 리팩토링 하기
     const user = await this.userService.registerUser(userInfo);
     const tokens = await this.authService.generateTokens(user.id);
-    await this.redisService.setFreshTokens(tokens);
+    await this.redisService.setBlackListAccessToken(tokens);
     await this.redisService.setUserAndRefreshTokenId(
       user.id,
       tokens.refreshToken.jti,
