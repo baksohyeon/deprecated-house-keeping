@@ -34,12 +34,6 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy, 'jwt-access') {
   private logger: Logger = new Logger(this.name);
 
   async validate(jwtPayload: AccessTokenPayload, done: VerifiedCallback) {
-    const isActive = await this.redisService.validateAccessTokenWithStatus(
-      jwtPayload,
-    );
-    if (!isActive) {
-      throw new ForbiddenException('access token is not valid');
-    }
     const userId = jwtPayload.userId;
     done(null, userId);
   }

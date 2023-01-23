@@ -8,9 +8,9 @@ import { Repository } from 'typeorm';
 import { AuthService } from '../auth.service';
 import { minuteToMilisecond } from 'src/util/units-of-time-conversion.util';
 import { User } from 'src/entities/user.entity';
-import { mockedConfigService } from './mocks/config.service';
-import { mockedJwtService } from './mocks/jwt.service';
-import { mockRepository } from './mocks/mockreposiotry';
+import { mockedConfigService } from './mocks/config.service.mock';
+import { mockedJwtService } from './mocks/jwt.service.mock';
+import { mockRepository } from './mocks/reposiotry.mock';
 
 const mockedUser = {
   id: 'uuid',

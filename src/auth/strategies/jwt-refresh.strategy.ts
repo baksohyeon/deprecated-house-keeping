@@ -33,18 +33,15 @@ export class JwtRefreshStrategy extends PassportStrategy(
   private readonly logger = new Logger(JwtRefreshStrategy.name);
 
   //TODO: strategy 로직 수정
-  async validate(req: Request, payload: any): Promise<ReissuedTokenResult> {
+  async validate(req: Request, payload: any) {
     if (!req.cookies) {
       throw new HttpException('cookie 못읽어옴', HttpStatus.NOT_FOUND);
     }
     // 해당 refresh token 유효한지 확인하고 유효한 경우 유저 id를 반환한다.
+
+    // 토큰들을 긁어와서 디코딩
     const refreshToken: string = refreshTokenCookieExtractor(req);
-    const accessToken = accessTokenCookieExtractor(req);
-    const reissuedTokensResult = await this.authService.reissueAccessToken(
-      accessToken,
-      refreshToken,
-    );
+
     // user redis 에 등록해준다.
-    return reissuedTokensResult;
   }
 }

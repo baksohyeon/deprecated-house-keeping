@@ -40,18 +40,19 @@ export class AuthController {
     // Guard redirects
   }
 
-  @Get('test')
-  async test() {
-    const result: any = await this.redisService.getRefreshTokenListsByUserId(
-      `f0c9ad9e-8e85-11ed-93a9-de361dafd48a`,
-    );
-    console.log(typeof result);
-    console.log(result);
-    console.log(result.tokenIds);
-    result.tokenIds.push('test');
-    console.log(result.tokenIds);
-    return result;
-  }
+  // @Get('test')
+  // async test() {
+  //   const result: any = await this.redisService.  private async getRefreshTokenInWhitelist(userId: string, jti: string) {
+  //     (
+  //     `f0c9ad9e-8e85-11ed-93a9-de361dafd48a`,
+  //   );
+  //   console.log(typeof result);
+  //   console.log(result);
+  //   console.log(result.tokenIds);
+  //   result.tokenIds.push('test');
+  //   console.log(result.tokenIds);
+  //   return result;
+  // }
 
   @UseGuards(GoogleOauthGaurd)
   @Get('google/redirect')
@@ -81,7 +82,7 @@ export class AuthController {
     @Param('userId') userId: string,
   ) {
     const refreshToken = user.data.tokens.refreshToken.token;
-    this.redisService.revokeRefreshTokens(userId);
+    // this.redisService.revokeRefreshTokens(userId);
   }
 
   @UseGuards(AuthGuard('jwt-access'))

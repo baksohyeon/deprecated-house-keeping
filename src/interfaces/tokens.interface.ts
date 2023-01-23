@@ -23,24 +23,13 @@ export interface JwtRegisterdClaims {
 
 // make registered claims partial so we don't have to provide them when creating
 // new objects
-export interface RawTokenPayload {
-  iat?: number;
-  exp?: number;
-  aud?: [string];
-  iss?: string;
-  jti?: string;
+export interface TokenPayload extends JwtRegisterdClaims {
+  userId: string;
   tokenType: TokenType;
 }
 
-export interface TokenPayloadUserInfo {
-  userId: string;
-}
-
-export interface AccessTokenPayload extends RawTokenPayload {
-  userId: string;
+export interface AccessTokenPayload extends TokenPayload {
   refreshTokenId: string;
 }
 
-export interface RefreshTokenPayload extends RawTokenPayload {
-  userId: string;
-}
+export interface RefreshTokenPayload extends TokenPayload {}

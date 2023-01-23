@@ -10,7 +10,6 @@ import { AuthService } from './auth.service';
 import { GoogleStrategy } from './strategies/google-strategy';
 import { JwtAuthStrategy } from './strategies/jwt-access.strategy';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
-import ms from 'ms';
 import tokenConfig from 'src/config/token.config';
 import { RedisService } from './redis/redis.service';
 
