@@ -37,6 +37,7 @@ describe('RedisService', () => {
 
     redisService = module.get<RedisService>(RedisService);
     redisManager = module.get(CACHE_MANAGER);
+    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
@@ -60,22 +61,48 @@ describe('RedisService', () => {
     it('should be called with key, value, ttl', async () => {
       const redisSpy = jest.spyOn(redisManager.store, 'set');
       await redisService.save('key1', 'value1', 5000);
+      await redisService.save('key2', 'value2', 5000);
 
       expect(redisSpy).toBeCalledWith('key1', 'value1', 5000);
-    });
-
-    it('should be excuted', () => {
-      expect(redisService.save('key2', 'value2', 5000)).resolves.toBeTruthy();
+      expect(redisSpy).toBeCalledTimes(2);
+      expect(redisSpy).not.toBeCalledTimes(1);
     });
   });
 
   describe('delete', () => {
-    it('should be called with key', async () => {
+    it('have have been called times 5', async () => {
       const redisSpy = jest.spyOn(redisManager.store, 'del');
-      await redisService.delete('deleteKey');
-      expect(redisSpy).toHaveBeenCalledTimes(1);
-      expect(redisSpy).toHaveBeenCalledWith('deleteKey');
-      expect(redisService.delete('deleteKey')).resolves.toBeTruthy();
+      redisService.delete('deleteKey1');
+      redisService.delete('deleteKey2');
+      redisService.delete('deleteKey3');
+      redisService.delete('deleteKey4');
+      redisService.delete('deleteKey5');
+      redisService.delete('six');
+      expect(redisSpy).nthCalledWith(1, 'deleteKey1');
+      expect(redisSpy).nthCalledWith(2, 'deleteKey2');
+      expect(redisSpy).nthCalledWith(3, 'deleteKey3');
+      expect(redisSpy).nthCalledWith(4, 'deleteKey4');
+      expect(redisSpy).nthCalledWith(5, 'deleteKey5');
+      expect(redisSpy).nthCalledWith(6, 'six');
+    });
+
+    it('should be called with key', () => {
+      const redisSpy = jest.spyOn(redisManager.store, 'del');
+      redisService.delete('test');
+      expect(redisSpy).toBeCalledWith('test');
+    });
+  });
+
+  describe('delete by keys', () => {
+    it('should define by keys', async () => {
+      const redisSpyKeys = jest.spyOn(redisService, 'getKeys');
+      const keys: string[] = ['key1', 'key2', 'key3'];
+      redisSpyKeys.mockImplementationOnce(() => Promise.resolve(keys));
+      const redisSpyDel = jest.spyOn(redisService, 'delete');
+      await redisService.deleteByKeys('key');
+      expect(redisSpyDel).nthCalledWith(1, 'key1');
+      expect(redisSpyDel).nthCalledWith(2, 'key2');
+      expect(redisSpyDel).nthCalledWith(3, 'key3');
     });
   });
 });
