@@ -25,7 +25,7 @@ export class RedisService {
     this.redisManager.store.del(key);
   }
 
-  async deleteByKeys(pattern: string) {
+  async deleteByKeys(pattern: string): Promise<void> {
     const redisKeys = await this.getKeys(pattern);
     for (const key of redisKeys) {
       this.delete(key);
