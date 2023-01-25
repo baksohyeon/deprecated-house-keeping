@@ -28,8 +28,6 @@ export class AuthController {
   constructor(
     @Inject(tokenConfig.KEY)
     private tokenOpts: ConfigType<typeof tokenConfig>,
-    private readonly authService: AuthService,
-    private readonly redisService: RedisService,
   ) {}
 
   private logger: Logger = new Logger(AuthController.name);
@@ -39,20 +37,6 @@ export class AuthController {
   handleLogin() {
     // Guard redirects
   }
-
-  // @Get('test')
-  // async test() {
-  //   const result: any = await this.redisService.  private async getRefreshTokenInWhitelist(userId: string, jti: string) {
-  //     (
-  //     `f0c9ad9e-8e85-11ed-93a9-de361dafd48a`,
-  //   );
-  //   console.log(typeof result);
-  //   console.log(result);
-  //   console.log(result.tokenIds);
-  //   result.tokenIds.push('test');
-  //   console.log(result.tokenIds);
-  //   return result;
-  // }
 
   @UseGuards(GoogleOauthGaurd)
   @Get('google/redirect')
