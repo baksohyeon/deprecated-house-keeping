@@ -11,6 +11,7 @@ import { mockRepository } from './mocks/reposiotry.mock';
 import tokenConfig from 'src/config/token.config';
 import { mockTokenConfig } from './mocks/token.config.mock';
 import { RedisService } from '../redis/redis.service';
+import { AuthController } from '../auth.controller';
 
 const mockedUser = {
   id: 'uuid',
@@ -38,6 +39,10 @@ describe('AuthService', () => {
         {
           provide: JwtService,
           useValue: mockedJwtService,
+        },
+        {
+          provide: tokenConfig.KEY,
+          useValue: mockTokenConfig,
         },
       ],
     }).compile();

@@ -11,6 +11,7 @@ import { mockRepository } from './mocks/reposiotry.mock';
 import tokenConfig from 'src/config/token.config';
 import { mockTokenConfig } from './mocks/token.config.mock';
 import { RedisService } from '../redis/redis.service';
+import { AuthController } from '../auth.controller';
 
 const mockedUser = {
   id: 'uuid',
@@ -21,23 +22,23 @@ const mockedUser = {
   updatedAt: new Date(),
 } as User;
 
-describe('AuthService', () => {
+describe('AuthController', () => {
+  let authController: AuthController;
   let authService: AuthService;
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      controllers: [AuthController],
       providers: [
-        AuthService,
+        {
+          provide: AuthService,
+          useValue: {
+            constructor: jest.fn(),
+            // TODO: 모킹하기
+          },
+        },
         {
           provide: tokenConfig.KEY,
           useValue: mockTokenConfig,
-        },
-        {
-          provide: RedisService,
-          useValue: {},
-        },
-        {
-          provide: JwtService,
-          useValue: mockedJwtService,
         },
       ],
     }).compile();
