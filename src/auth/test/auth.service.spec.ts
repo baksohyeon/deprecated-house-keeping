@@ -8,6 +8,9 @@ import { User } from 'src/entities/user.entity';
 import { mockedConfigService } from './mocks/config.service.mock';
 import { mockedJwtService } from './mocks/jwt.service.mock';
 import { mockRepository } from './mocks/reposiotry.mock';
+import tokenConfig from 'src/config/token.config';
+import { mockTokenConfig } from './mocks/token.config.mock';
+import { RedisService } from '../redis/redis.service';
 
 const mockedUser = {
   id: 'uuid',
@@ -20,18 +23,17 @@ const mockedUser = {
 
 describe('AuthService', () => {
   let authService: AuthService;
-  let mockedUserRepository: Repository<User>;
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
         {
-          provide: getRepositoryToken(User),
-          useValue: mockRepository(),
+          provide: tokenConfig.KEY,
+          useValue: mockTokenConfig,
         },
         {
-          provide: ConfigService,
-          useValue: mockedConfigService,
+          provide: RedisService,
+          useValue: {},
         },
         {
           provide: JwtService,
@@ -41,8 +43,9 @@ describe('AuthService', () => {
     }).compile();
 
     authService = module.get<AuthService>(AuthService);
-    mockedUserRepository = module.get<Repository<User>>(
-      getRepositoryToken(User),
-    );
+  });
+
+  it('should be defined', () => {
+    expect(authService).toBeDefined();
   });
 });
