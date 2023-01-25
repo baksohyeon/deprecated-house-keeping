@@ -10,8 +10,7 @@ export class UserService {
     @InjectRepository(User) private readonly userRepository: Repository<User>,
   ) {}
 
-  async findUserByEmail(email: string): Promise<User> {
-    // TODO: error handling
+  async findUserByEmail(email: string): Promise<User | null> {
     const user = await this.userRepository.findOneBy({ email });
     if (!user) {
       return null;
@@ -19,7 +18,7 @@ export class UserService {
     return user;
   }
 
-  async createUser(userInfo: RequestLoginUserDto) {
+  async createUser(userInfo: RequestLoginUserDto): Promise<User> {
     const userObject = this.userRepository.create(userInfo);
     return this.userRepository.save(userObject);
   }
