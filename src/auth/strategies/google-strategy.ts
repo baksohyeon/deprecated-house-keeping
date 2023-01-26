@@ -3,17 +3,10 @@ import { ConfigType } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Profile, Strategy, VerifyCallback } from 'passport-google-oauth20';
 import { googleConfiguration } from 'src/config/google.config';
-import { User } from 'src/entities/user.entity';
-import {
-  LoginResponse,
-  loginUserInfo,
-} from 'src/interfaces/login-response.interface';
-import { RedisService } from 'src/auth/redis/redis.service';
+import { LoginResponse } from 'src/interfaces/login-response.interface';
 import { UserService } from 'src/user/user.service';
 import { AuthService } from '../auth.service';
 import { RequestLoginUserDto } from '../dto/request-login-user.dto';
-import { ResponseLoginUserDto } from '../dto/response-login-user.dto';
-// import { UserInfoDto } from '../dto/user-info.dto';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
@@ -21,7 +14,6 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     @Inject(googleConfiguration.KEY)
     googleConfig: ConfigType<typeof googleConfiguration>,
     private readonly authService: AuthService,
-    private readonly redisService: RedisService,
     private readonly userService: UserService,
   ) {
     super({
@@ -46,11 +38,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
 
     // TODO: 메서드 리팩토링 하기
     const user = await this.userService.registerUser(userInfo);
-    const tokens = await this.authService.generateTokens(user.id);
-    await this.authService.setWhiteListRefreshToken(
-      tokens.refreshToken,
-      user.id,
-    );
+    const tokens = await this.authService.generateTokensAndSaveToRedis(user.id);
 
     const result: LoginResponse = {
       user,
