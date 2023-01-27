@@ -34,6 +34,56 @@ export class AuthService {
 
   private readonly logger = new Logger(AuthService.name);
 
+  async generateTokensAndSaveToRedis(userId: string): Promise<FreshTokens> {
+    const refreshToken = await this.generateRefreshToken(userId);
+    const accessToken = await this.generateAccessToken(
+      userId,
+      refreshToken.jti,
+    );
+    this.setBlackListAccessToken(accessToken.jti, userId);
+    this.setWhiteListRefreshToken(refreshToken.jti, userId);
+    return {
+      accessToken,
+      refreshToken,
+    };
+  }
+  // check if the refresh token has the same id as the refreshTokenId field in the decoded access token.
+  async reissueTokensAndSaveToRedis(
+    expiredToken: string,
+    refreshToken: string,
+    userId: string,
+  ): Promise<ReissuedTokenResult> {
+    try {
+      const isValidTokens = await this.validateTokens(
+        expiredToken,
+        refreshToken,
+        userId,
+      );
+      if (isValidTokens) {
+        const freshTokens: FreshTokens =
+          await this.generateTokensAndSaveToRedis(userId);
+
+        return {
+          statusCode: HttpStatus.ACCEPTED,
+          message: 'tokens are reissued',
+          userId,
+          reissuedTokens: freshTokens,
+        };
+      }
+    } catch (e) {
+      return {
+        statusCode: HttpStatus.NOT_ACCEPTABLE,
+        message: e.message,
+      };
+    }
+  }
+
+  // revoke all of user's refresh tokens
+  async revokeEveryTokenByUser(userId: string): Promise<void> {
+    const pattern = `userId:${userId}*`;
+    await this.redisService.deleteByKeys(pattern);
+  }
+
   private async generateRefreshToken(userId: string): Promise<Token> {
     // include the necessary data in the token payload
     const refreshTokenPayload = {
@@ -46,7 +96,6 @@ export class AuthService {
     const refreshToken = this.jwtService.sign(refreshTokenPayload, {
       secret: this.tokenOpts.refresh.secret,
       expiresIn: this.tokenOpts.refresh.expiresIn,
-      issuer: 'dorito',
       jwtid: jti,
     });
 
@@ -70,7 +119,6 @@ export class AuthService {
     const accessToken = this.jwtService.sign(accessTokenPayload, {
       secret: this.tokenOpts.access.secret,
       expiresIn: this.tokenOpts.access.expiresIn,
-      issuer: 'dorito',
       jwtid: jti,
     });
     return {
@@ -79,129 +127,86 @@ export class AuthService {
     };
   }
 
-  async generateTokensAndSaveToRedis(userId: string): Promise<FreshTokens> {
-    const refreshToken = await this.generateRefreshToken(userId);
-    const accessToken = await this.generateAccessToken(
-      userId,
-      refreshToken.jti,
-    );
-    this.setBlackListAccessToken(accessToken, userId);
-    this.setWhiteListRefreshToken(refreshToken, userId);
-    return {
-      accessToken,
-      refreshToken,
-    };
-  }
-  // check if the refresh token has the same id as the refreshTokenId field in the decoded access token.
-  async reissueAccessToken(
-    expiredToken: string,
+  private async validateTokens(
+    accessToken: string,
     refreshToken: string,
-  ): Promise<ReissuedTokenResult> {
-    try {
-      const refreshTokenPayload: RefreshTokenPayload = this.jwtService.verify(
-        refreshToken,
-        {
-          secret: this.tokenOpts.refresh.secret,
-        },
-      );
-      // get refresh token's state from redis
-      const oldAccessTokenPayload: AccessTokenPayload = this.jwtService.verify(
-        expiredToken,
-        {
-          secret: this.tokenOpts.access.secret,
-          ignoreExpiration: true,
-        },
-      );
-      const userId = oldAccessTokenPayload.userId;
+    userId: string,
+  ) {
+    const refreshTokenPayload: RefreshTokenPayload = this.jwtService.verify(
+      refreshToken,
+      {
+        secret: this.tokenOpts.refresh.secret,
+      },
+    );
+    const accessTokenPayload: AccessTokenPayload = this.jwtService.verify(
+      accessToken,
+      {
+        secret: this.tokenOpts.access.secret,
+        ignoreExpiration: true,
+      },
+    );
 
-      const isAcceptableRefreshToken =
-        await this.checkNotExistAndSaveAccessToken(
-          userId,
-          refreshTokenPayload.jti,
-        );
+    const isAcceptableRefreshToken = await this.checkExistAndDeleteRefreshToken(
+      userId,
+      refreshTokenPayload.jti,
+    );
 
-      const isMatchedTokenWithJti =
-        oldAccessTokenPayload.refreshTokenId === refreshTokenPayload.jti;
+    const isAcceptableAccessToken = await this.checkNotExistAndSaveAccessToken(
+      userId,
+      accessTokenPayload.jti,
+    );
 
-      // 만약 해당 refresh 토큰 상태 isActive 가 true 이고,
-      // access 토큰에 적힌 refrsh 고유 번호와 해당 refresh 토큰 고유 id끼리 같을 경우 새 토큰들 발급
-      // 해당 access token 과 refresh 토큰의 isActive 는 false 로 바꾼다.
-      if (isAcceptableRefreshToken && isMatchedTokenWithJti) {
-        const freshTokens = await this.generateTokensAndSaveToRedis(userId);
+    const isMatchedTokenWithJti =
+      accessTokenPayload.refreshTokenId === refreshTokenPayload.jti;
 
-        return {
-          statusCode: HttpStatus.ACCEPTED,
-          message: 'access token is reissued',
-          userId,
-          reissuedTokens: freshTokens,
-        };
-      }
-    } catch (e) {
-      return {
-        statusCode: HttpStatus.NOT_ACCEPTABLE,
-        message: 'Invalid token',
-      };
-    }
+    return (
+      isAcceptableAccessToken &&
+      isAcceptableRefreshToken &&
+      isMatchedTokenWithJti
+    );
   }
 
-  private async setBlackListAccessToken(token: Token, userId: string) {
+  private async setBlackListAccessToken(userId: string, tokenJti: string) {
     await this.redisService.save(
-      `userId:${userId}:accessToken-jti${token.jti}`,
+      `userId:${userId}:accessToken-jti${tokenJti}`,
 
-      false,
+      true,
       this.tokenOpts.access.expiresIn,
     );
   }
 
-  private async setWhiteListRefreshToken(token: Token, userId: string) {
+  private async setWhiteListRefreshToken(userId: string, tokenJti: string) {
     // key: refresh token - jti
     // value: { isAcive boolean }
     await this.redisService.save(
-      `userId:${userId}:refreshToken-jti${token.jti}`,
+      `userId:${userId}:refreshToken-jti${tokenJti}`,
 
       true,
       this.tokenOpts.refresh.expiresIn,
     );
   }
 
-  async checkExistAndDeleteRefreshToken(userId: string, jti: string) {
+  private async checkExistAndDeleteRefreshToken(userId: string, jti: string) {
     // 레디스에 존재하지 않는 경우 인증 오류 발생 (whitelist)
     // 레디스에 존재하는 경우 레디스에서 삭제
     const redisKey = `userId:${userId}:refreshToken-jti:${jti}`;
     const isExists = await this.redisService.getValue<boolean>(redisKey);
-    if (!isExists) {
-      throw new NotAcceptableException('유효하지 않은 리프레시 토큰입니다.');
+    if (isExists) {
+      await this.redisService.delete(redisKey);
+      return true;
     }
-    await this.redisService.delete(redisKey);
-
-    return isExists;
+    throw new NotAcceptableException('유효하지 않은 리프레시 토큰입니다.');
   }
 
-  async checkNotExistAndSaveAccessToken(userId: string, jti: string) {
+  private async checkNotExistAndSaveAccessToken(userId: string, jti: string) {
     // 레디스에 존재하는 경우 인증 오류 발생 (blacklist)
     // 레디스에 존재하지 않는 경우 레디스에 저장
     const redisKey = `userId:${userId}:accessToken-jti:${jti}`;
     const isExists = await this.redisService.getValue<boolean>(redisKey);
-    if (isExists) {
-      throw new NotAcceptableException('유효하지 않은 액세스 토큰입니다.');
+    if (isExists === undefined) {
+      await this.setBlackListAccessToken(userId, jti);
+      return true;
     }
-
-    await this.redisService.save(
-      redisKey,
-      false,
-      this.tokenOpts.access.expiresIn,
-    );
-
-    return isExists;
-  }
-
-  async dropRefreshTokenAndStatus(jti: string) {
-    await this.redisService.delete(`refreshToken-jti:${jti}`);
-  }
-
-  // revoke all of user's refresh tokens
-  async revokeEveryTokenByUser(userId: string): Promise<void> {
-    const pattern = `userId:${userId}*`;
-    await this.redisService.deleteByKeys(pattern);
+    throw new NotAcceptableException('유효하지 않은 액세스 토큰입니다.');
   }
 }

@@ -15,16 +15,18 @@ import {
   AccessTokenPayload,
   RefreshTokenPayload,
   Token,
+  TokenType,
 } from 'src/interfaces/tokens.interface';
 import { v4 as uuidv4 } from 'uuid';
 import { HttpStatus } from '@nestjs/common';
 
 const JWT_SIGNED_TOKEN = 'abc1.def2.ghi3';
 const MOCK_UUID = 'mocked-uuid';
+const MOCK_USER_ID = 'mocked-user-id"';
 jest.mock('uuid', () => ({ v4: () => MOCK_UUID }));
 
 const mockedUser = {
-  id: 'uuid',
+  id: MOCK_USER_ID,
   email: 'test@abc.com',
   username: 'dorito',
   createdAt: new Date(),
@@ -33,6 +35,7 @@ const mockedUser = {
 
 describe('AuthService', () => {
   let authService: AuthService;
+  let redisService: RedisService;
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -45,6 +48,15 @@ describe('AuthService', () => {
           provide: RedisService,
           useValue: {
             save: jest.fn(),
+            getValue: jest.fn(async (redisKey: string) => {
+              if (redisKey.match(/userId:.+:refreshToken-jti:.+/g)) {
+                return true;
+              }
+              if (redisKey.match(/userId:.+:accessToken-jti:.+/g)) {
+                return undefined;
+              }
+            }),
+            delete: jest.fn(),
           },
         },
         {
@@ -52,16 +64,16 @@ describe('AuthService', () => {
           useValue: {
             sign: jest.fn(() => JWT_SIGNED_TOKEN),
             verify: jest.fn((token, { secret, ignoreExpiration }) => {
-              if (token === 'valid-refresh-token') {
+              if (token === 'refresh-token') {
                 return {
                   jti: 'mocked-refresh-jti',
-                  userId: 'mocked-user-id',
+                  userId: MOCK_USER_ID,
                   tokenType: 'refresh',
                 } satisfies RefreshTokenPayload;
-              } else if (token === 'valid-access-token') {
+              } else if (token === 'access-token') {
                 return {
                   jti: 'mocked-jti',
-                  userId: 'mocked-user-id',
+                  userId: MOCK_USER_ID,
                   tokenType: 'access',
                   refreshTokenId: 'mocked-refresh-jti',
                 } satisfies AccessTokenPayload;
@@ -75,6 +87,7 @@ describe('AuthService', () => {
     }).compile();
 
     authService = module.get<AuthService>(AuthService);
+    redisService = module.get<RedisService>(RedisService);
     jest.clearAllMocks();
   });
 
@@ -110,22 +123,17 @@ describe('AuthService', () => {
 
   describe('reissueAccessToken', () => {
     it('should be return reissued tokens', async () => {
-      const spyCheckNotExistAndSaveAccessToken = jest.spyOn(
-        authService,
-        'checkNotExistAndSaveAccessToken',
-      );
-      spyCheckNotExistAndSaveAccessToken.mockResolvedValue(true);
-
-      const expiredToken = 'valid-access-token';
-      const refreshToken = 'valid-refresh-token';
-      const result = await authService.reissueAccessToken(
+      const expiredToken = 'access-token';
+      const refreshToken = 'refresh-token';
+      const result = await authService.reissueTokensAndSaveToRedis(
         expiredToken,
         refreshToken,
+        MOCK_USER_ID,
       );
       expect(result).toEqual({
         statusCode: HttpStatus.ACCEPTED,
-        message: 'access token is reissued',
-        userId: 'mocked-user-id',
+        message: 'tokens are reissued',
+        userId: MOCK_USER_ID,
         reissuedTokens: {
           accessToken: {
             token: JWT_SIGNED_TOKEN,
@@ -139,6 +147,52 @@ describe('AuthService', () => {
       });
     });
 
-    it('should be call checkNotExistAndSaveAccessToken Method');
+    it('should be throw error if accessToken exists on redis', async () => {
+      const spyRedisGetValue = jest.spyOn(redisService, 'getValue');
+      spyRedisGetValue.mockImplementation(async (redisKey) => {
+        if (redisKey.match(/userId:.+:refreshToken-jti:.+/g)) {
+          return true;
+        }
+        if (redisKey.match(/userId:.+:accessToken-jti:.+/g)) {
+          return true;
+        }
+      });
+      const expiredToken = 'access-token';
+      const refreshToken = 'refresh-token';
+      const result = await authService.reissueTokensAndSaveToRedis(
+        expiredToken,
+        refreshToken,
+        MOCK_USER_ID,
+      );
+
+      expect(result).toStrictEqual({
+        statusCode: HttpStatus.NOT_ACCEPTABLE,
+        message: '유효하지 않은 액세스 토큰입니다.',
+      });
+    });
+
+    it('should be throw error if refresh token not exists on redis', async () => {
+      const spyRedisGetValue = jest.spyOn(redisService, 'getValue');
+      spyRedisGetValue.mockImplementation(async (redisKey) => {
+        if (redisKey.match(/userId:.+:refreshToken-jti:.+/g)) {
+          return undefined;
+        }
+        if (redisKey.match(/userId:.+:accessToken-jti:.+/g)) {
+          return undefined;
+        }
+      });
+      const expiredToken = 'access-token';
+      const refreshToken = 'refresh-token';
+      const result = await authService.reissueTokensAndSaveToRedis(
+        expiredToken,
+        refreshToken,
+        MOCK_USER_ID,
+      );
+
+      expect(result).toStrictEqual({
+        statusCode: HttpStatus.NOT_ACCEPTABLE,
+        message: '유효하지 않은 리프레시 토큰입니다.',
+      });
+    });
   });
 });
