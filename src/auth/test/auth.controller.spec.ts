@@ -6,7 +6,6 @@ import { Repository } from 'typeorm';
 import { AuthService } from '../auth.service';
 import { User } from 'src/entities/user.entity';
 import { mockedConfigService } from './mocks/config.service.mock';
-import { mockedJwtService } from './mocks/jwt.service.mock';
 import { mockRepository } from './mocks/reposiotry.mock';
 import tokenConfig from 'src/config/token.config';
 import { mockTokenConfig } from './mocks/token.config.mock';

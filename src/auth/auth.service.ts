@@ -34,7 +34,7 @@ export class AuthService {
 
   private readonly logger = new Logger(AuthService.name);
 
-  private async generateRefreshToken(userId: string) {
+  private async generateRefreshToken(userId: string): Promise<Token> {
     // include the necessary data in the token payload
     const refreshTokenPayload = {
       userId: userId,
@@ -56,7 +56,10 @@ export class AuthService {
     };
   }
 
-  private async generateAccessToken(userId: string, refreshTokenId: string) {
+  private async generateAccessToken(
+    userId: string,
+    refreshTokenId: string,
+  ): Promise<Token> {
     // used to revoke individual tokens
     const jti = uuidv4();
     const accessTokenPayload = {
@@ -76,12 +79,14 @@ export class AuthService {
     };
   }
 
-  async generateTokens(userId: string): Promise<FreshTokens> {
+  async generateTokensAndSaveToRedis(userId: string): Promise<FreshTokens> {
     const refreshToken = await this.generateRefreshToken(userId);
     const accessToken = await this.generateAccessToken(
       userId,
       refreshToken.jti,
     );
+    this.setBlackListAccessToken(accessToken, userId);
+    this.setWhiteListRefreshToken(refreshToken, userId);
     return {
       accessToken,
       refreshToken,
@@ -122,7 +127,7 @@ export class AuthService {
       // access 토큰에 적힌 refrsh 고유 번호와 해당 refresh 토큰 고유 id끼리 같을 경우 새 토큰들 발급
       // 해당 access token 과 refresh 토큰의 isActive 는 false 로 바꾼다.
       if (isAcceptableRefreshToken && isMatchedTokenWithJti) {
-        const freshTokens = await this.generateTokens(userId);
+        const freshTokens = await this.generateTokensAndSaveToRedis(userId);
 
         return {
           statusCode: HttpStatus.ACCEPTED,
@@ -148,7 +153,7 @@ export class AuthService {
     );
   }
 
-  async setWhiteListRefreshToken(token: Token, userId: string) {
+  private async setWhiteListRefreshToken(token: Token, userId: string) {
     // key: refresh token - jti
     // value: { isAcive boolean }
     await this.redisService.save(
