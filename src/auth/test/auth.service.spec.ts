@@ -120,15 +120,9 @@ describe('AuthService', () => {
       const tokens = await authService.generateTokensAndSaveToRedis(
         MOCK_USER_ID,
       );
-      expect(tokens.accessToken).toStrictEqual({
-        token: JWT_SIGNED_TOKEN,
-        jti: MOCK_UUID,
-      });
+      expect(tokens.accessToken).toStrictEqual(JWT_SIGNED_TOKEN);
 
-      expect(tokens.refreshToken).toStrictEqual({
-        token: JWT_SIGNED_TOKEN,
-        jti: MOCK_UUID,
-      });
+      expect(tokens.refreshToken).toStrictEqual(JWT_SIGNED_TOKEN);
     });
 
     it('should be ensure that  RedisService - save method is excuted', async () => {
