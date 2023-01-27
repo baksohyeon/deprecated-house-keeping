@@ -14,6 +14,7 @@ import {
   RefreshTokenPayload,
   Token,
   TokenPayload,
+  Tokens,
   TokenType,
 } from 'src/interfaces/tokens.interface';
 
@@ -34,7 +35,7 @@ export class AuthService {
 
   private readonly logger = new Logger(AuthService.name);
 
-  async generateTokensAndSaveToRedis(userId: string): Promise<FreshTokens> {
+  async generateTokensAndSaveToRedis(userId: string): Promise<Tokens> {
     const refreshToken = await this.generateRefreshToken(userId);
     const accessToken = await this.generateAccessToken(
       userId,
@@ -43,8 +44,8 @@ export class AuthService {
     await this.setBlackListAccessToken(userId, accessToken.jti);
     await this.setWhiteListRefreshToken(userId, refreshToken.jti);
     return {
-      accessToken,
-      refreshToken,
+      accessToken: accessToken.encoded,
+      refreshToken: refreshToken.encoded,
     };
   }
   // check if the refresh token has the same id as the refreshTokenId field in the decoded access token.
@@ -60,8 +61,9 @@ export class AuthService {
         userId,
       );
       if (isValidTokens) {
-        const freshTokens: FreshTokens =
-          await this.generateTokensAndSaveToRedis(userId);
+        const freshTokens: Tokens = await this.generateTokensAndSaveToRedis(
+          userId,
+        );
 
         return {
           statusCode: HttpStatus.ACCEPTED,
@@ -100,7 +102,7 @@ export class AuthService {
     });
 
     return {
-      token: refreshToken,
+      encoded: refreshToken,
       jti,
     };
   }
@@ -122,7 +124,7 @@ export class AuthService {
       jwtid: jti,
     });
     return {
-      token: accessToken,
+      encoded: accessToken,
       jti,
     };
   }

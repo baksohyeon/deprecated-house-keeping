@@ -1,10 +1,14 @@
 export interface Token {
-  token: string;
+  encoded: string;
   jti: string;
 }
 export interface FreshTokens {
   accessToken: Token;
   refreshToken: Token;
+}
+export interface Tokens {
+  accessToken: string;
+  refreshToken: string;
 }
 
 export interface FreshTokensAndUserId extends FreshTokens {

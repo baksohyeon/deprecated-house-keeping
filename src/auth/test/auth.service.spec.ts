@@ -168,14 +168,8 @@ describe('AuthService', () => {
         message: 'tokens are reissued',
         userId: MOCK_USER_ID,
         reissuedTokens: {
-          accessToken: {
-            token: JWT_SIGNED_TOKEN,
-            jti: MOCK_UUID,
-          },
-          refreshToken: {
-            token: JWT_SIGNED_TOKEN,
-            jti: MOCK_UUID,
-          },
+          accessToken: JWT_SIGNED_TOKEN,
+          refreshToken: JWT_SIGNED_TOKEN,
         },
       });
     });

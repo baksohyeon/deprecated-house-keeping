@@ -9,7 +9,8 @@ export interface LoginResponse {
     updatedAt: Date;
   };
   message: string;
-  tokens: FreshTokens;
+  accessToken: string;
+  refreshToken: string;
 }
 
 export interface loginUserInfo {
