@@ -20,10 +20,13 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import { HttpStatus } from '@nestjs/common';
 
+jest.mock('uuid', () => ({ v4: () => MOCK_UUID }));
 const JWT_SIGNED_TOKEN = 'abc1.def2.ghi3';
 const MOCK_UUID = 'mocked-uuid';
 const MOCK_USER_ID = 'mocked-user-id"';
-jest.mock('uuid', () => ({ v4: () => MOCK_UUID }));
+const MOCK_VALID_ACCESS_TOKEN = 'mOcKVa.lIdAccEs.sTokEn';
+const MOCK_VALID_REFRESH_TOKEN = 'mOcKVa.lIRefre.shTokEn';
+const MOCK_INVALID_ACCESS_TOKEN = 'mOcKin.ValIdAcc.EssTokEn';
 
 const mockedUser = {
   id: MOCK_USER_ID,
@@ -64,18 +67,25 @@ describe('AuthService', () => {
           useValue: {
             sign: jest.fn(() => JWT_SIGNED_TOKEN),
             verify: jest.fn((token, { secret, ignoreExpiration }) => {
-              if (token === 'refresh-token') {
+              if (token === MOCK_VALID_ACCESS_TOKEN) {
                 return {
                   jti: 'mocked-refresh-jti',
                   userId: MOCK_USER_ID,
                   tokenType: 'refresh',
                 } satisfies RefreshTokenPayload;
-              } else if (token === 'access-token') {
+              } else if (token === MOCK_VALID_REFRESH_TOKEN) {
                 return {
                   jti: 'mocked-jti',
                   userId: MOCK_USER_ID,
                   tokenType: 'access',
                   refreshTokenId: 'mocked-refresh-jti',
+                } satisfies AccessTokenPayload;
+              } else if (token === MOCK_INVALID_ACCESS_TOKEN) {
+                return {
+                  jti: 'mocked-jti',
+                  userId: MOCK_USER_ID,
+                  tokenType: 'access',
+                  refreshTokenId: 'mocked-not-matched-refresh-jti',
                 } satisfies AccessTokenPayload;
               } else {
                 throw new Error('Invalid token');
@@ -123,8 +133,8 @@ describe('AuthService', () => {
 
   describe('reissueAccessToken', () => {
     it('should be return reissued tokens', async () => {
-      const expiredToken = 'access-token';
-      const refreshToken = 'refresh-token';
+      const expiredToken = MOCK_VALID_REFRESH_TOKEN;
+      const refreshToken = MOCK_VALID_ACCESS_TOKEN;
       const result = await authService.reissueTokensAndSaveToRedis(
         expiredToken,
         refreshToken,
@@ -157,8 +167,8 @@ describe('AuthService', () => {
           return true;
         }
       });
-      const expiredToken = 'access-token';
-      const refreshToken = 'refresh-token';
+      const expiredToken = MOCK_VALID_REFRESH_TOKEN;
+      const refreshToken = MOCK_VALID_ACCESS_TOKEN;
       const result = await authService.reissueTokensAndSaveToRedis(
         expiredToken,
         refreshToken,
@@ -181,10 +191,10 @@ describe('AuthService', () => {
           return undefined;
         }
       });
-      const expiredToken = 'access-token';
-      const refreshToken = 'refresh-token';
+      const accessToken = MOCK_VALID_REFRESH_TOKEN;
+      const refreshToken = MOCK_VALID_ACCESS_TOKEN;
       const result = await authService.reissueTokensAndSaveToRedis(
-        expiredToken,
+        accessToken,
         refreshToken,
         MOCK_USER_ID,
       );
@@ -192,6 +202,30 @@ describe('AuthService', () => {
       expect(result).toStrictEqual({
         statusCode: HttpStatus.NOT_ACCEPTABLE,
         message: '유효하지 않은 리프레시 토큰입니다.',
+      });
+    });
+
+    it('should be throw error if jti is not matched', async () => {
+      const spyRedisGetValue = jest.spyOn(redisService, 'getValue');
+      spyRedisGetValue.mockImplementation(async (redisKey) => {
+        if (redisKey.match(/userId:.+:refreshToken-jti:.+/g)) {
+          return true;
+        }
+        if (redisKey.match(/userId:.+:accessToken-jti:.+/g)) {
+          return undefined;
+        }
+      });
+      const accessToken = MOCK_VALID_REFRESH_TOKEN;
+      const refreshToken = MOCK_INVALID_ACCESS_TOKEN;
+      const result = await authService.reissueTokensAndSaveToRedis(
+        accessToken,
+        refreshToken,
+        MOCK_USER_ID,
+      );
+
+      expect(result).toStrictEqual({
+        statusCode: HttpStatus.NOT_ACCEPTABLE,
+        message: '유효하지 않은 토큰 요청입니다.',
       });
     });
   });
