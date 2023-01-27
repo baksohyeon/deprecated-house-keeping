@@ -39,6 +39,7 @@ describe('AuthController', () => {
           provide: tokenConfig.KEY,
           useValue: mockTokenConfig,
         },
+        { provide: ConfigService, useValue: mockedConfigService },
       ],
     }).compile();
 

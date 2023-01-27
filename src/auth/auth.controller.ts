@@ -12,7 +12,7 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { ConfigType } from '@nestjs/config';
+import { ConfigService, ConfigType } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
 import { Request, Response } from 'express';
 import tokenConfig from 'src/config/token.config';
@@ -22,12 +22,16 @@ import { RedisService } from 'src/auth/redis/redis.service';
 import { ms } from 'src/util/convert-milliseconds.util';
 import { AuthService } from './auth.service';
 import { GoogleOauthGaurd } from './guards/google-oauth.guard';
+import { LoginResponse } from 'src/interfaces/login-response.interface';
+import { triggerAsyncId } from 'async_hooks';
+import { ReissuedTokenResult } from 'src/interfaces/reissued-token-result';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     @Inject(tokenConfig.KEY)
     private tokenOpts: ConfigType<typeof tokenConfig>,
+    private configService: ConfigService,
   ) {}
 
   private logger: Logger = new Logger(AuthController.name);
@@ -41,31 +45,41 @@ export class AuthController {
   @UseGuards(GoogleOauthGaurd)
   @Get('google/redirect')
   async googleAuthCallback(
-    @RequestUser() data: any,
+    @RequestUser() data: LoginResponse,
     @Res({ passthrough: true }) res: Response,
   ) {
-    res.cookie('x-refresh-token', data.tokens.refreshToken.token, {
-      path: 'api/auth/google/refresh',
+    res.cookie('refresh-token', data.refreshToken, {
+      domain: this.configService.get<string>('FRONTEND_URL'),
+      path: '/',
       maxAge: this.tokenOpts.refresh.expiresIn,
-      secure: false, // only in development
+      httpOnly: true,
     });
-
-    const accessToken = data.tokens.accessToken.token;
-    const refreshToken = data.tokens.refreshToken.token;
-    return {
-      accessToken,
-      refreshToken,
-    };
+    res.cookie('access-token', data.accessToken, {
+      domain: this.configService.get<string>('FRONTEND_URL'),
+      path: '/',
+      maxAge: this.tokenOpts.access.expiresIn,
+      httpOnly: true,
+    });
   }
 
   @UseGuards(AuthGuard('jwt-refresh'))
   @Post('/google/profile/logout/:userId')
   async logOut(
-    @RequestUser() user: any,
+    @RequestUser() data: ReissuedTokenResult,
     @Res({ passthrough: true }) res: Response,
     @Param('userId') userId: string,
   ) {
-    const refreshToken = user.data.tokens.refreshToken.token;
+    // TODO: 로그아웃 api 짜기
+    const refreshToken = data.reissuedTokens.refreshToken;
+    const accessToken = data.reissuedTokens.accessToken;
+    res.cookie('access-token', null, {
+      maxAge: 0,
+      httpOnly: true,
+    });
+    res.cookie('refresh-token', null, {
+      maxAge: 0,
+      httpOnly: true,
+    });
     // this.redisService.revokeRefreshTokens(userId);
   }
 
@@ -81,6 +95,6 @@ export class AuthController {
     @RequestUser() user: User,
     @Res({ passthrough: true }) res: Response,
   ) {
-    //TODO: refresh 토큰 확인하고 access 토큰 재발급
+    //TODO: refresh api 수정 및 테스트 코드 짜기
   }
 }
