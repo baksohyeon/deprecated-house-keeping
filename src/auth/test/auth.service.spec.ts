@@ -23,7 +23,7 @@ import { HttpStatus } from '@nestjs/common';
 jest.mock('uuid', () => ({ v4: () => MOCK_UUID }));
 const JWT_SIGNED_TOKEN = 'abc1.def2.ghi3';
 const MOCK_UUID = 'mocked-uuid';
-const MOCK_USER_ID = 'mocked-user-id"';
+const MOCK_USER_ID = 'mocked-user-id';
 const MOCK_VALID_ACCESS_TOKEN = 'mOcKVa.lIdAccEs.sTokEn';
 const MOCK_VALID_REFRESH_TOKEN = 'mOcKVa.lIRefre.shTokEn';
 const MOCK_INVALID_ACCESS_TOKEN = 'mOcKin.ValIdAcc.EssTokEn';
@@ -117,8 +117,9 @@ describe('AuthService', () => {
 
   describe('generateTokens', () => {
     it('should be return tokens', async () => {
-      const userId = 'uuid';
-      const tokens = await authService.generateTokensAndSaveToRedis(userId);
+      const tokens = await authService.generateTokensAndSaveToRedis(
+        MOCK_USER_ID,
+      );
       expect(tokens.accessToken).toStrictEqual({
         token: JWT_SIGNED_TOKEN,
         jti: MOCK_UUID,
@@ -128,6 +129,28 @@ describe('AuthService', () => {
         token: JWT_SIGNED_TOKEN,
         jti: MOCK_UUID,
       });
+    });
+
+    it('should be ensure that  RedisService - save method is excuted', async () => {
+      const tokens = await authService.generateTokensAndSaveToRedis(
+        MOCK_USER_ID,
+      );
+      const redisSaveMethodSpy = jest.spyOn(redisService, 'save');
+      expect(redisSaveMethodSpy).toBeCalledTimes(2);
+
+      expect(redisSaveMethodSpy).toHaveBeenNthCalledWith(
+        1,
+        `userId:${MOCK_USER_ID}:accessToken-jti:${MOCK_UUID}`,
+        true,
+        1,
+      );
+
+      expect(redisSaveMethodSpy).toHaveBeenNthCalledWith(
+        2,
+        `userId:${MOCK_USER_ID}:refreshToken-jti:${MOCK_UUID}`,
+        true,
+        10,
+      );
     });
   });
 
@@ -207,14 +230,6 @@ describe('AuthService', () => {
 
     it('should be throw error if jti is not matched', async () => {
       const spyRedisGetValue = jest.spyOn(redisService, 'getValue');
-      spyRedisGetValue.mockImplementation(async (redisKey) => {
-        if (redisKey.match(/userId:.+:refreshToken-jti:.+/g)) {
-          return true;
-        }
-        if (redisKey.match(/userId:.+:accessToken-jti:.+/g)) {
-          return undefined;
-        }
-      });
       const accessToken = MOCK_VALID_REFRESH_TOKEN;
       const refreshToken = MOCK_INVALID_ACCESS_TOKEN;
       const result = await authService.reissueTokensAndSaveToRedis(
@@ -227,6 +242,8 @@ describe('AuthService', () => {
         statusCode: HttpStatus.NOT_ACCEPTABLE,
         message: '유효하지 않은 토큰 요청입니다.',
       });
+
+      expect(spyRedisGetValue).toBeCalledTimes(2);
     });
   });
 });

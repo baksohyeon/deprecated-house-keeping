@@ -4,10 +4,10 @@ import tokenConfig from 'src/config/token.config';
 export const mockTokenConfig: ConfigType<typeof tokenConfig> = {
   access: {
     secret: 'access-secret-test',
-    expiresIn: 3000,
+    expiresIn: 1,
   },
   refresh: {
     secret: 'refresh-secret-test',
-    expiresIn: 30000,
+    expiresIn: 10,
   },
 };

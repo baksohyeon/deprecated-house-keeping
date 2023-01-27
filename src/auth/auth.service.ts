@@ -40,8 +40,8 @@ export class AuthService {
       userId,
       refreshToken.jti,
     );
-    this.setBlackListAccessToken(accessToken.jti, userId);
-    this.setWhiteListRefreshToken(refreshToken.jti, userId);
+    await this.setBlackListAccessToken(userId, accessToken.jti);
+    await this.setWhiteListRefreshToken(userId, refreshToken.jti);
     return {
       accessToken,
       refreshToken,
@@ -180,7 +180,7 @@ export class AuthService {
 
   private async setBlackListAccessToken(userId: string, tokenJti: string) {
     await this.redisService.save(
-      `userId:${userId}:accessToken-jti${tokenJti}`,
+      `userId:${userId}:accessToken-jti:${tokenJti}`,
 
       true,
       this.tokenOpts.access.expiresIn,
@@ -191,9 +191,9 @@ export class AuthService {
     // key: refresh token - jti
     // value: { isAcive boolean }
     await this.redisService.save(
-      `userId:${userId}:refreshToken-jti${tokenJti}`,
+      `userId:${userId}:refreshToken-jti:${tokenJti}`,
 
-      false,
+      true,
       this.tokenOpts.refresh.expiresIn,
     );
   }
