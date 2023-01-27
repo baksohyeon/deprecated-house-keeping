@@ -151,13 +151,25 @@ export class AuthService {
       refreshTokenPayload.jti,
     );
 
+    if (!isAcceptableRefreshToken) {
+      throw new NotAcceptableException('유효하지 않은 리프레시 토큰입니다.');
+    }
+
     const isAcceptableAccessToken = await this.checkNotExistAndSaveAccessToken(
       userId,
       accessTokenPayload.jti,
     );
 
+    if (!isAcceptableAccessToken) {
+      throw new NotAcceptableException('유효하지 않은 액세스 토큰입니다.');
+    }
+
     const isMatchedTokenWithJti =
       accessTokenPayload.refreshTokenId === refreshTokenPayload.jti;
+
+    if (!isMatchedTokenWithJti) {
+      throw new NotAcceptableException('유효하지 않은 토큰 요청입니다.');
+    }
 
     return (
       isAcceptableAccessToken &&
@@ -181,7 +193,7 @@ export class AuthService {
     await this.redisService.save(
       `userId:${userId}:refreshToken-jti${tokenJti}`,
 
-      true,
+      false,
       this.tokenOpts.refresh.expiresIn,
     );
   }
@@ -195,7 +207,7 @@ export class AuthService {
       await this.redisService.delete(redisKey);
       return true;
     }
-    throw new NotAcceptableException('유효하지 않은 리프레시 토큰입니다.');
+    return false;
   }
 
   private async checkNotExistAndSaveAccessToken(userId: string, jti: string) {
@@ -207,6 +219,6 @@ export class AuthService {
       await this.setBlackListAccessToken(userId, jti);
       return true;
     }
-    throw new NotAcceptableException('유효하지 않은 액세스 토큰입니다.');
+    return false;
   }
 }
