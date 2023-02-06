@@ -130,17 +130,9 @@ describe('AuthService', () => {
         MOCK_USER_ID,
       );
       const redisSaveMethodSpy = jest.spyOn(redisService, 'save');
-      expect(redisSaveMethodSpy).toBeCalledTimes(2);
+      expect(redisSaveMethodSpy).toBeCalledTimes(1);
 
-      expect(redisSaveMethodSpy).toHaveBeenNthCalledWith(
-        1,
-        `userId:${MOCK_USER_ID}:accessToken-jti:${MOCK_UUID}`,
-        true,
-        1,
-      );
-
-      expect(redisSaveMethodSpy).toHaveBeenNthCalledWith(
-        2,
+      expect(redisSaveMethodSpy).toHaveBeenCalledWith(
         `userId:${MOCK_USER_ID}:refreshToken-jti:${MOCK_UUID}`,
         true,
         10,

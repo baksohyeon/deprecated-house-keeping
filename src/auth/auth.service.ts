@@ -41,7 +41,6 @@ export class AuthService {
       userId,
       refreshToken.jti,
     );
-    await this.setBlackListAccessToken(userId, accessToken.jti);
     await this.setWhiteListRefreshToken(userId, refreshToken.jti);
     return {
       accessToken: accessToken.encoded,
