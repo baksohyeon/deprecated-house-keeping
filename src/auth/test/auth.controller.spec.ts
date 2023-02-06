@@ -19,6 +19,7 @@ const mockedUser = {
   refreshToken: null,
   createdAt: new Date(),
   updatedAt: new Date(),
+  deletedAt: new Date(),
 } as User;
 
 describe('AuthController', () => {

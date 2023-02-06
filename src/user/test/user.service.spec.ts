@@ -3,7 +3,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { RequestLoginUserDto } from 'src/auth/dto/request-login-user.dto';
 import { User } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
-import { UserService } from './user.service';
+import { UserService } from '../user.service';
 
 const mockRequestLoginUserDto = {
   email: 'test@abcd.com',
@@ -16,6 +16,7 @@ const mockUser = {
   username: 'test user',
   createdAt: new Date(),
   updatedAt: new Date(),
+  deletedAt: new Date(),
 } satisfies User;
 
 describe('UserService', () => {

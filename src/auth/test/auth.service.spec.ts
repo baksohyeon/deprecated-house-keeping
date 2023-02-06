@@ -34,6 +34,7 @@ const mockedUser = {
   username: 'dorito',
   createdAt: new Date(),
   updatedAt: new Date(),
+  deletedAt: new Date(),
 } satisfies User;
 
 describe('AuthService', () => {
