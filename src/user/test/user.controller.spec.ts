@@ -39,7 +39,7 @@ describe('UserController', () => {
   });
 
   describe('getById', () => {
-    it('should get a single cat', async () => {
+    it('should get a single user profile', async () => {
       await expect(controller.getUserProfile('uuid')).resolves.toEqual(USER);
     });
   });
