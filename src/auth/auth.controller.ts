@@ -18,12 +18,8 @@ import { Request, Response } from 'express';
 import tokenConfig from 'src/config/token.config';
 import { RequestUser } from 'src/decorator/request-user.decorator';
 import { User } from 'src/entities/user.entity';
-import { RedisService } from 'src/auth/redis/redis.service';
-import { ms } from 'src/util/convert-milliseconds.util';
-import { AuthService } from './auth.service';
 import { GoogleOauthGaurd } from './guards/google-oauth.guard';
 import { LoginResponse } from 'src/interfaces/login-response.interface';
-import { triggerAsyncId } from 'async_hooks';
 import { ReissuedTokenResult } from 'src/interfaces/reissued-token-result';
 
 @Controller('auth')
