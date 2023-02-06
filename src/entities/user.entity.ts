@@ -2,6 +2,7 @@ import { Exclude } from 'class-transformer';
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   Index,
   PrimaryGeneratedColumn,
@@ -10,11 +11,9 @@ import {
 
 @Entity('user.user')
 export class User {
-  // TODO: user id 를 uuid로 저장하기
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Exclude()
   @Index({ unique: true })
   @Column({ unique: true })
   email: string;
@@ -27,4 +26,7 @@ export class User {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @DeleteDateColumn()
+  deletedAt: Date | null;
 }
