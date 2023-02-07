@@ -16,12 +16,4 @@ type RedisTokenjti = {
   jti: string;
 };
 
-const redisTokenExample = {
-  namespace: 'accessToken-jti',
-  key: 'accessToken-jti:jtivalue1234',
-  value: {
-    isActive: true,
-  },
-};
-
 export type TokenKey = `${'access' | 'refresh'}Token-jti:${string}`;
