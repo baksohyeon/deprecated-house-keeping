@@ -9,6 +9,7 @@ import { UserModule } from './user/user.module';
 import { RedisCacheModule } from './auth/redis/redis.module';
 import tokenConfig from './config/token.config';
 import { redisStore } from 'cache-manager-redis-yet';
+import { HouseModule } from './house/house.module';
 
 @Module({
   imports: [
@@ -37,6 +38,8 @@ import { redisStore } from 'cache-manager-redis-yet';
       inject: [ConfigService],
       isGlobal: true,
     }),
+
+    HouseModule,
   ],
   controllers: [],
   providers: [],
