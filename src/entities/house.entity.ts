@@ -1,25 +1,20 @@
-import { Exclude } from 'class-transformer';
 import {
   Column,
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
-  Index,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
 @Entity({ schema: 'housekeeping' })
-export class User {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
-  @Index({ unique: true })
-  @Column({ unique: true })
-  email: string;
+export class House {
+  @PrimaryGeneratedColumn()
+  id: number;
 
   @Column()
-  username: string;
+  name: string;
 
   @CreateDateColumn()
   createdAt: Date;
