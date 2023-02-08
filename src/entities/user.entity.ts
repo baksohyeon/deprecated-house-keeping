@@ -5,9 +5,11 @@ import {
   DeleteDateColumn,
   Entity,
   Index,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { HouseMember } from './houseMember.entity';
 
 @Entity({ schema: 'housekeeping' })
 export class User {
@@ -29,4 +31,7 @@ export class User {
 
   @DeleteDateColumn()
   deletedAt: Date | null;
+
+  @OneToMany(() => HouseMember, (houseMember) => houseMember.user)
+  housemember: HouseMember[];
 }

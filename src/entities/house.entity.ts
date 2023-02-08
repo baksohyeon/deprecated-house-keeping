@@ -7,6 +7,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { HouseMember } from './houseMember.entity';
 
 @Entity({ schema: 'housekeeping' })
 export class House {
@@ -24,4 +25,7 @@ export class House {
 
   @DeleteDateColumn()
   deletedAt: Date | null;
+
+  @OneToMany(() => HouseMember, (houseMember) => houseMember.house)
+  houseMember: House[];
 }
