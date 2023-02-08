@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { RequestLoginUserDto } from 'src/auth/dto/request-login-user.dto';
+import { HouseMember } from 'src/entities/houseMember.entity';
 import { User } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
 import { UserService } from '../user.service';
@@ -14,9 +15,10 @@ const mockUser = {
   id: 'uuid',
   email: 'test@abcd.com',
   username: 'test user',
+  housemember: [new HouseMember()],
   createdAt: new Date(),
   updatedAt: new Date(),
-  deletedAt: new Date(),
+  deletedAt: null,
 } satisfies User;
 
 describe('UserService', () => {

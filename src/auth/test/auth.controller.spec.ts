@@ -11,16 +11,17 @@ import tokenConfig from 'src/config/token.config';
 import { mockTokenConfig } from './mocks/token.config.mock';
 import { RedisService } from '../redis/redis.service';
 import { AuthController } from '../auth.controller';
+import { HouseMember } from 'src/entities/houseMember.entity';
 
-const mockedUser = {
+const mockUser = {
   id: 'uuid',
-  email: 'test@abc.com',
-  username: 'dorito',
-  refreshToken: null,
+  email: 'test@abcd.com',
+  username: 'test user',
+  housemember: [new HouseMember()],
   createdAt: new Date(),
   updatedAt: new Date(),
-  deletedAt: new Date(),
-} as User;
+  deletedAt: null,
+} satisfies User;
 
 describe('AuthController', () => {
   let authController: AuthController;

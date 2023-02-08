@@ -1,12 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { HouseMember } from 'src/entities/houseMember.entity';
 import { User } from 'src/entities/user.entity';
 import { UserController } from '../user.controller';
 import { UserService } from '../user.service';
 
-const USER = {
+const mockUser = {
   id: 'uuid',
-  username: 'test user name',
-  email: 'test@user.com',
+  email: 'test@abcd.com',
+  username: 'test user',
+  housemember: [new HouseMember()],
   createdAt: new Date(),
   updatedAt: new Date(),
   deletedAt: null,
@@ -25,7 +27,9 @@ describe('UserController', () => {
           useValue: {
             findUserById: jest
               .fn()
-              .mockImplementation((userId: string) => Promise.resolve(USER)),
+              .mockImplementation((userId: string) =>
+                Promise.resolve(mockUser),
+              ),
           },
         },
       ],
@@ -40,7 +44,9 @@ describe('UserController', () => {
 
   describe('getById', () => {
     it('should get a single user profile', async () => {
-      await expect(controller.getUserProfile('uuid')).resolves.toEqual(USER);
+      await expect(controller.getUserProfile('uuid')).resolves.toEqual(
+        mockUser,
+      );
     });
   });
 });

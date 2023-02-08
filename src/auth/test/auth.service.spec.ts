@@ -19,6 +19,7 @@ import {
 } from 'src/interfaces/tokens.interface';
 import { v4 as uuidv4 } from 'uuid';
 import { HttpStatus } from '@nestjs/common';
+import { HouseMember } from 'src/entities/houseMember.entity';
 
 jest.mock('uuid', () => ({ v4: () => MOCK_UUID }));
 const JWT_SIGNED_TOKEN = 'abc1.def2.ghi3';
@@ -28,13 +29,14 @@ const MOCK_VALID_ACCESS_TOKEN = 'mOcKVa.lIdAccEs.sTokEn';
 const MOCK_VALID_REFRESH_TOKEN = 'mOcKVa.lIRefre.shTokEn';
 const MOCK_INVALID_ACCESS_TOKEN = 'mOcKin.ValIdAcc.EssTokEn';
 
-const mockedUser = {
-  id: MOCK_USER_ID,
-  email: 'test@abc.com',
-  username: 'dorito',
+const mockUser = {
+  id: 'uuid',
+  email: 'test@abcd.com',
+  username: 'test user',
+  housemember: [new HouseMember()],
   createdAt: new Date(),
   updatedAt: new Date(),
-  deletedAt: new Date(),
+  deletedAt: null,
 } satisfies User;
 
 describe('AuthService', () => {
