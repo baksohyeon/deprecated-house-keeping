@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { CreateHouseDto } from 'src/dto/create-house.dto';
 import { House } from 'src/entities/house.entity';
 import { HouseMember } from 'src/entities/houseMember.entity';
 import { User } from 'src/entities/user.entity';
+import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -14,14 +16,16 @@ export class HouseService {
     private readonly houseMemberRepository: Repository<HouseMember>,
   ) {}
 
-  async createNewHouse(houseName: string, userId: string) {
-    const houseEntity = this.houseRepository.create({ name: houseName });
+  async createNewHouse(createHouseDto: CreateHouseDto, user: User) {
+    const houseEntity = this.houseRepository.create({
+      name: createHouseDto.houseName,
+    });
     const house = await this.houseRepository.save(houseEntity);
 
     const houseMemberEntity = new HouseMember();
     Object.assign(houseMemberEntity, {
-      houseId: house.id,
-      userId,
+      house,
+      user,
       role: 'Admin',
       backlog: 'No Tasks',
     });
