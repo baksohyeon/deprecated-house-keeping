@@ -12,19 +12,17 @@ import {
 import { House } from './house.entity';
 import { User } from './user.entity';
 
-@Index(['houseId', 'userId'], { unique: true })
+@Index(['house', 'user'], { unique: true })
 @Entity({ schema: 'housekeeping', name: 'houseMember' })
 export class HouseMember {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  @Index()
-  houseId: string;
+  @ManyToOne(() => House, (house) => house.houseMember)
+  house: House;
 
-  @Column()
-  @Index()
-  userId: string;
+  @ManyToOne(() => User, (user) => user.housemember)
+  user: User;
 
   @Column({
     type: 'enum',
