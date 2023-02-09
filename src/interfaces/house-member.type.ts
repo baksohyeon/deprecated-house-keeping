@@ -1,2 +1,2 @@
-export type BackLog = 'Tasks to do' | 'No tasks';
+export type BackLog = 'Tasks To do' | 'No Tasks';
 export type HouseRole = 'Admin' | 'Member';

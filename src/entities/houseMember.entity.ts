@@ -33,7 +33,7 @@ export class HouseMember {
 
   @Column({
     type: 'enum',
-    enum: ['Tasks to do', 'No tasks'],
+    enum: ['Tasks To do', 'No Tasks'],
     default: 'No tasks',
   })
   backlog: BackLog;
