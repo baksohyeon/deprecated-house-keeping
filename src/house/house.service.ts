@@ -16,7 +16,10 @@ export class HouseService {
     private readonly houseMemberRepository: Repository<HouseMember>,
   ) {}
 
-  async createNewHouse(createHouseDto: CreateHouseDto, user: User) {
+  async createNewHouse(
+    createHouseDto: CreateHouseDto,
+    user: User,
+  ): Promise<HouseMember> {
     const houseEntity = this.houseRepository.create({
       name: createHouseDto.houseName,
     });
@@ -29,9 +32,6 @@ export class HouseService {
       role: 'Admin',
       backlog: 'No Tasks',
     });
-    const houseMember = await this.houseMemberRepository.save(
-      houseMemberEntity,
-    );
-    return houseMember;
+    return this.houseMemberRepository.save(houseMemberEntity);
   }
 }
