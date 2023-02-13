@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateHouseDto } from 'src/dto/create-house.dto';
 import { House } from 'src/entities/house.entity';
@@ -20,18 +20,43 @@ export class HouseService {
     createHouseDto: CreateHouseDto,
     user: User,
   ): Promise<HouseMember> {
+    // TODO: 트랜잭션 붙이기
     const houseEntity = this.houseRepository.create({
       name: createHouseDto.houseName,
     });
-    const house = await this.houseRepository.save(houseEntity);
 
+    const house = await this.houseRepository.save(houseEntity);
     const houseMemberEntity = new HouseMember();
     Object.assign(houseMemberEntity, {
       house,
       user,
       role: 'Admin',
       backlog: 'No Tasks',
-    });
+    } as Partial<HouseMember>);
     return this.houseMemberRepository.save(houseMemberEntity);
+  }
+
+  async getAllHouseContainsUser(user: User) {
+    return this.houseMemberRepository.find({
+      where: {
+        user: { id: user.id },
+      },
+      relations: ['user', 'house'],
+    });
+  }
+
+  async getHouseByHouseId(houseId: number) {
+    try {
+      return this.houseRepository.findOneOrFail({
+        relations: {
+          houseMembers: true,
+        },
+        where: {
+          id: houseId,
+        },
+      });
+    } catch (e) {
+      throw new NotFoundException(e.message);
+    }
   }
 }
