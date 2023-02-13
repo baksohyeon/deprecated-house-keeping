@@ -21,7 +21,7 @@ export class HouseController {
   @UseGuards(AuthGuard('jwt-access'))
   @Get('/all')
   async getHouses(@RequestUser() user: User) {
-    return await this.houseService.getAllHouseContainsUser(user);
+    return await this.houseService.getAllHouseByUser(user);
   }
 
   @UseGuards(AuthGuard('jwt-access'))

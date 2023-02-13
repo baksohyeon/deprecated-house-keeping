@@ -36,7 +36,7 @@ export class HouseService {
     return this.houseMemberRepository.save(houseMemberEntity);
   }
 
-  async getAllHouseContainsUser(user: User) {
+  async getAllHouseByUser(user: User) {
     return this.houseMemberRepository.find({
       where: {
         user: { id: user.id },
