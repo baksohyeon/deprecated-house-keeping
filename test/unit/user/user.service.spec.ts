@@ -4,7 +4,7 @@ import { RequestLoginUserDto } from 'src/auth/dto/request-login-user.dto';
 import { HouseMember } from 'src/entities/houseMember.entity';
 import { User } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
-import { UserService } from '../user.service';
+import { UserService } from '../../../src/user/user.service';
 
 const mockRequestLoginUserDto = {
   email: 'test@abcd.com',
@@ -15,7 +15,7 @@ const mockUser = {
   id: 'uuid',
   email: 'test@abcd.com',
   username: 'test user',
-  housemember: [new HouseMember()],
+  housemembers: [new HouseMember()],
   createdAt: new Date(),
   updatedAt: new Date(),
   deletedAt: null,

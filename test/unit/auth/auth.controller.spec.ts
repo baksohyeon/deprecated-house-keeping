@@ -3,21 +3,21 @@ import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { AuthService } from '../auth.service';
+import { AuthService } from '../../../src/auth/auth.service';
 import { User } from 'src/entities/user.entity';
 import { mockedConfigService } from '../../mocks/config.service.mock';
 import { mockRepository } from '../../mocks/reposiotry.mock';
 import tokenConfig from 'src/config/token.config';
 import { mockTokenConfig } from '../../mocks/token.config.mock';
-import { RedisService } from '../redis/redis.service';
-import { AuthController } from '../auth.controller';
+import { RedisService } from '../../../src/auth/redis/redis.service';
+import { AuthController } from '../../../src/auth/auth.controller';
 import { HouseMember } from 'src/entities/houseMember.entity';
 
 const mockUser = {
   id: 'uuid',
   email: 'test@abcd.com',
   username: 'test user',
-  housemember: [new HouseMember()],
+  housemembers: [new HouseMember()],
   createdAt: new Date(),
   updatedAt: new Date(),
   deletedAt: null,

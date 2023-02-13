@@ -1,8 +1,8 @@
 import { CACHE_MANAGER, ValueProvider } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { RedisService } from '../redis/redis.service';
+import { RedisService } from '../../../src/auth/redis/redis.service';
 import { Cache, Store } from 'cache-manager';
-import { PublicPart } from './utils/public-part.type';
+import { PublicPart } from '../../../src/util/public-part.type';
 
 describe('RedisService', () => {
   let redisService: RedisService;

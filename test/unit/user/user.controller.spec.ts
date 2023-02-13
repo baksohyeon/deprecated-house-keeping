@@ -1,14 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { HouseMember } from 'src/entities/houseMember.entity';
 import { User } from 'src/entities/user.entity';
-import { UserController } from '../user.controller';
-import { UserService } from '../user.service';
+import { UserController } from '../../../src/user/user.controller';
+import { UserService } from '../../../src/user/user.service';
 
 const mockUser = {
   id: 'uuid',
   email: 'test@abcd.com',
   username: 'test user',
-  housemember: [new HouseMember()],
+  housemembers: [new HouseMember()],
   createdAt: new Date(),
   updatedAt: new Date(),
   deletedAt: null,
