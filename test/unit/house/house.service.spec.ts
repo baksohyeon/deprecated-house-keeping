@@ -57,11 +57,13 @@ describe('HouseService', () => {
           useValue: {
             create: jest
               .fn((house: CreateHouseDto) => {
-                mockHouse.name = house.houseName;
+                let houseObject = mockHouse;
+                houseObject.name = house.houseName;
                 return mockHouse;
               })
               .mockName('house repo create function'),
             save: jest.fn().mockName('house repository save function'),
+            findOneOrFail: jest.fn().mockReturnValue(mockHouse),
           },
         },
         {
@@ -82,6 +84,10 @@ describe('HouseService', () => {
       getRepositoryToken(HouseMember),
     );
     houseRepository = module.get<Repository<House>>(getRepositoryToken(House));
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
@@ -122,18 +128,36 @@ describe('HouseService', () => {
     });
   });
 
-  // describe('getAllHouseContainsUser', () => {
-  //   it('should be called with correct argument', async () => {
-  //     const houseMemberRepoFindSpy = jest.spyOn(houseMemberRepository, 'find');
-  //     const findArgs = {
-  //       where: {
-  //         user: { id: mockUser.id },
-  //       },
-  //       relations: ['user', 'house'],
-  //     };
-  //     houseService.getAllHouseContainsUser(mockUser);
-  //     expect(houseMemberRepoFindSpy).toBeCalled();
-  //     expect(houseMemberRepoFindSpy).toBeCalledWith(findArgs);
-  //   });
-  // });
+  describe('getAllHouseByUser', () => {
+    it('should be called with correct argument', async () => {
+      const houseMemberRepoFindSpy = jest.spyOn(houseMemberRepository, 'find');
+      const findArgs = {
+        where: {
+          user: { id: mockUser.id },
+        },
+        relations: ['user', 'house'],
+      };
+      houseService.getAllHouseByUser(mockUser);
+      expect(houseMemberRepoFindSpy).toBeCalled();
+      expect(houseMemberRepoFindSpy).toBeCalledWith(findArgs);
+    });
+  });
+
+  describe('getHouseByHoudId', () => {
+    it('should be get single house', async () => {
+      const houseId = 1;
+      const houseRepositorySpy = jest.spyOn(houseRepository, 'findOneOrFail');
+      const house = await houseService.getHouseByHouseId(houseId);
+      expect(house).toStrictEqual(mockHouse);
+      expect(house.id).toEqual(houseId);
+      expect(houseRepositorySpy).toBeCalledWith({
+        relations: {
+          houseMembers: true,
+        },
+        where: {
+          id: houseId,
+        },
+      });
+    });
+  });
 });
