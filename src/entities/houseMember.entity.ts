@@ -5,6 +5,7 @@ import {
   DeleteDateColumn,
   Entity,
   Index,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -18,10 +19,10 @@ export class HouseMember {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => House, (house) => house.houseMember)
+  @ManyToOne(() => House, (house) => house.houseMembers)
   house: House;
 
-  @ManyToOne(() => User, (user) => user.housemember)
+  @ManyToOne(() => User, (user) => user.housemembers, { eager: true })
   user: User;
 
   @Column({

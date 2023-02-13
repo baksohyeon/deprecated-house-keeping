@@ -3,6 +3,7 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  JoinColumn,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -27,5 +28,5 @@ export class House {
   deletedAt: Date | null;
 
   @OneToMany(() => HouseMember, (houseMember) => houseMember.house)
-  houseMember: House[];
+  houseMembers: HouseMember[];
 }

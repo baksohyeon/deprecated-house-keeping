@@ -33,5 +33,5 @@ export class User {
   deletedAt: Date | null;
 
   @OneToMany(() => HouseMember, (houseMember) => houseMember.user)
-  housemember: HouseMember[];
+  housemembers: HouseMember[];
 }
