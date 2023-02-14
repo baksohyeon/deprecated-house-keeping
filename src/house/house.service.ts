@@ -1,11 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateHouseDto } from 'src/dto/create-house.dto';
+import { CreateHouseDto } from 'src/house/dto/create-house.dto';
 import { House } from 'src/entities/house.entity';
 import { HouseMember } from 'src/entities/houseMember.entity';
 import { User } from 'src/entities/user.entity';
 import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
+import { UpdateHouseDto } from './dto/update-house.dto';
 
 @Injectable()
 export class HouseService {
@@ -47,16 +48,21 @@ export class HouseService {
 
   async getHouseByHouseId(houseId: number) {
     try {
-      return this.houseRepository.findOneOrFail({
+      return await this.houseRepository.findOneOrFail({
         relations: {
           houseMembers: true,
         },
         where: {
           id: houseId,
         },
+        transaction: true,
       });
     } catch (e) {
       throw new NotFoundException(e.message);
     }
+  }
+
+  async renameHouse(houseId: number, updateHouseDto: UpdateHouseDto) {
+    this.houseRepository.update(houseId, { name: updateHouseDto.houseName });
   }
 }

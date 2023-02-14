@@ -1,9 +1,18 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { RequestUser } from 'src/decorator/request-user.decorator';
-import { CreateHouseDto } from 'src/dto/create-house.dto';
+import { CreateHouseDto } from 'src/house/dto/create-house.dto';
 import { User } from 'src/entities/user.entity';
 import { HouseService } from './house.service';
+import { UpdateHouseDto } from './dto/update-house.dto';
 
 @Controller('house')
 export class HouseController {
@@ -28,5 +37,14 @@ export class HouseController {
   @Get('/:houseId')
   async getHouseByHouseId(@Param('houseId') houseId: number) {
     return this.houseService.getHouseByHouseId(houseId);
+  }
+
+  @UseGuards(AuthGuard('jwt-access'))
+  @Put('/:houseId/update')
+  async renameHouse(
+    @Param('houseId') houseId: number,
+    @Body() updateHouseDto: UpdateHouseDto,
+  ) {
+    return this.houseService.renameHouse(houseId, updateHouseDto);
   }
 }
