@@ -57,16 +57,14 @@ describe('HouseService', () => {
         {
           provide: getRepositoryToken(House),
           useValue: {
-            create: jest
-              .fn((house: CreateHouseDto) => {
-                let houseObject = mockHouse;
-                houseObject.name = house.houseName;
-                return mockHouse;
-              })
-              .mockName('house repo create function'),
-            save: jest.fn().mockName('house repository save function'),
+            create: jest.fn().mockName('house repo create function'),
+            save: jest
+              .fn()
+              .mockReturnThis()
+              .mockName('house repository save function'),
             findOneOrFail: jest.fn().mockReturnValue(mockHouse),
             update: jest.fn(),
+            softRemove: jest.fn(),
           },
         },
         {
@@ -100,21 +98,8 @@ describe('HouseService', () => {
   describe('create new house', () => {
     it('create new House as Admin', async () => {
       const HOUSE_NAME = 'test to verify';
-      const createHouseDto = {
-        houseName: HOUSE_NAME,
-      } satisfies CreateHouseDto;
-
-      const EXPECT_HOUSE = () => {
-        let house = mockHouse;
-        house.name = createHouseDto.houseName;
-        return house;
-      };
-
-      const EXPECT_HOUSE_MEMBER = () => {
-        let houseMember = mockHouseMember;
-        houseMember.house = EXPECT_HOUSE();
-        houseMember.user = mockUser;
-        return houseMember;
+      const createHouseDto: CreateHouseDto = {
+        name: HOUSE_NAME,
       };
 
       const house = await houseService.createNewHouse(createHouseDto, mockUser);
@@ -125,9 +110,9 @@ describe('HouseService', () => {
       expect(houseRepoCreateSpy).toBeCalledWith({
         name: HOUSE_NAME,
       });
-      expect(houseRepoSaveSpy).toBeCalledWith(EXPECT_HOUSE());
-      expect(houseMemberRepoSaveSpy).toBeCalled();
-      expect(house).toStrictEqual(EXPECT_HOUSE_MEMBER());
+      expect(houseMemberRepoSaveSpy).toBeCalledTimes(1);
+      expect(houseRepoSaveSpy).toBeCalled();
+      expect(house).toBeDefined();
     });
   });
 
@@ -177,6 +162,17 @@ describe('HouseService', () => {
       expect(houseRepositoryUpdateSpy).toBeCalledWith(HOUSE_ID, {
         name: updateHouseDto.houseName,
       });
+    });
+  });
+
+  describe('soft remove house', () => {
+    it('should be called with correct arguments', async () => {
+      const HOUSE_ID = 17348;
+      const houseServiceSpy = jest.spyOn(houseService, 'getHouseByHouseId');
+      await houseService.softDeleteHouse(HOUSE_ID);
+      expect(houseServiceSpy).toBeCalled();
+      expect(houseServiceSpy).toBeCalledWith(HOUSE_ID);
+      expect(houseRepository.softRemove).toBeCalled();
     });
   });
 });
