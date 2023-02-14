@@ -5,8 +5,9 @@ import { House } from 'src/entities/house.entity';
 import { HouseMember } from 'src/entities/houseMember.entity';
 import { Repository } from 'typeorm';
 import { HouseService } from '../../../src/house/house.service';
-import { CreateHouseDto } from 'src/dto/create-house.dto';
+import { CreateHouseDto } from 'src/house/dto/create-house.dto';
 import { User } from 'src/entities/user.entity';
+import { UpdateHouseDto } from 'src/house/dto/update-house.dto';
 
 describe('HouseService', () => {
   let houseService: HouseService;
@@ -41,6 +42,7 @@ describe('HouseService', () => {
     id: 1,
     house: new House(),
     user: new User(),
+    houseId: new House().id,
     backlog: 'No Tasks',
     role: 'Admin',
     createdAt: newDate,
@@ -64,6 +66,7 @@ describe('HouseService', () => {
               .mockName('house repo create function'),
             save: jest.fn().mockName('house repository save function'),
             findOneOrFail: jest.fn().mockReturnValue(mockHouse),
+            update: jest.fn(),
           },
         },
         {
@@ -157,6 +160,22 @@ describe('HouseService', () => {
         where: {
           id: houseId,
         },
+        transaction: true,
+      });
+    });
+  });
+
+  describe('renameHouse', () => {
+    it('should be called with correct arguments', async () => {
+      const updateHouseDto = {
+        houseName: 'test',
+      } satisfies UpdateHouseDto;
+      const HOUSE_ID = 10;
+
+      const houseRepositoryUpdateSpy = jest.spyOn(houseRepository, 'update');
+      houseService.renameHouse(HOUSE_ID, updateHouseDto);
+      expect(houseRepositoryUpdateSpy).toBeCalledWith(HOUSE_ID, {
+        name: updateHouseDto.houseName,
       });
     });
   });
