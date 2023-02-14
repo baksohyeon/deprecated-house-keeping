@@ -32,6 +32,8 @@ export class User {
   @DeleteDateColumn()
   deletedAt: Date | null;
 
-  @OneToMany(() => HouseMember, (houseMember) => houseMember.user)
+  @OneToMany(() => HouseMember, (houseMember) => houseMember.user, {
+    cascade: ['soft-remove'],
+  })
   housemembers: HouseMember[];
 }

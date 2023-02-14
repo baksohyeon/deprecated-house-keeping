@@ -10,6 +10,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { SoftDeleteQueryBuilder } from 'typeorm/query-builder/SoftDeleteQueryBuilder';
 import { House } from './house.entity';
 import { User } from './user.entity';
 
@@ -19,11 +20,13 @@ export class HouseMember {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => House, (house) => house.houseMembers)
+  @ManyToOne(() => House, (house) => house.houseMembers, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'house_id' })
   house: House;
 
-  @ManyToOne(() => User, (user) => user.housemembers, { eager: true })
+  @ManyToOne(() => User, (user) => user.housemembers)
   user: User;
 
   @Column({

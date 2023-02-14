@@ -27,6 +27,9 @@ export class House {
   @DeleteDateColumn()
   deletedAt: Date | null;
 
-  @OneToMany(() => HouseMember, (houseMember) => houseMember.house)
+  @OneToMany(() => HouseMember, (houseMember) => houseMember.house, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   houseMembers: HouseMember[];
 }
