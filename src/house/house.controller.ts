@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -46,5 +47,14 @@ export class HouseController {
     @Body() updateHouseDto: UpdateHouseDto,
   ) {
     return this.houseService.renameHouse(houseId, updateHouseDto);
+  }
+
+  @UseGuards(AuthGuard('jwt-access'))
+  @Delete('/:houseId')
+  async deleteHouse(@Param('houseId') houseId: number) {
+    await this.houseService.softDeleteHouse(houseId);
+    return {
+      staus: 201,
+    };
   }
 }

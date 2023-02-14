@@ -7,6 +7,7 @@ import { User } from 'src/entities/user.entity';
 import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
 import { UpdateHouseDto } from './dto/update-house.dto';
+import { SoftDeleteQueryBuilder } from 'typeorm/query-builder/SoftDeleteQueryBuilder';
 
 @Injectable()
 export class HouseService {
@@ -23,9 +24,8 @@ export class HouseService {
   ): Promise<HouseMember> {
     // TODO: 트랜잭션 붙이기
     const houseEntity = this.houseRepository.create({
-      name: createHouseDto.houseName,
+      name: createHouseDto.name,
     });
-
     const house = await this.houseRepository.save(houseEntity);
     const houseMemberEntity = new HouseMember();
     Object.assign(houseMemberEntity, {
@@ -64,5 +64,10 @@ export class HouseService {
 
   async renameHouse(houseId: number, updateHouseDto: UpdateHouseDto) {
     this.houseRepository.update(houseId, { name: updateHouseDto.houseName });
+  }
+
+  async softDeleteHouse(houseId: number) {
+    const house = await this.getHouseByHouseId(houseId);
+    await this.houseRepository.softRemove(house);
   }
 }
