@@ -20,6 +20,7 @@ export class HouseMember {
   id: number;
 
   @ManyToOne(() => House, (house) => house.houseMembers)
+  @JoinColumn({ name: 'house_id' })
   house: House;
 
   @ManyToOne(() => User, (user) => user.housemembers, { eager: true })
@@ -31,6 +32,10 @@ export class HouseMember {
     default: 'member',
   })
   role: HouseRole;
+
+  @Column({ nullable: false })
+  @Index()
+  houseId: number;
 
   @Column({
     type: 'enum',
