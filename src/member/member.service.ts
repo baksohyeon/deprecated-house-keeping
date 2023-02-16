@@ -36,6 +36,10 @@ export class MemberService {
         email: createInvitationDto.receiverEmail,
       });
 
+      await this.houseRepository.findOneByOrFail({
+        id: houseId,
+      });
+
       const isExistMember = await this.houseMemberRepository.findOne({
         where: {
           houseId: houseId,
@@ -46,9 +50,6 @@ export class MemberService {
       if (isExistMember) {
         throw new NotAcceptableException('Already exists member');
       }
-      await this.houseRepository.findOneByOrFail({
-        id: houseId,
-      });
 
       const invitationObject = this.invitationRepository.create({
         senderUserId: user.id,
