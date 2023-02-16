@@ -9,7 +9,7 @@ import {
 import { Status } from './enum/status.enum';
 
 @Entity({ schema: 'housekeeping' })
-export class Invitaion {
+export class Invitation {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -17,7 +17,7 @@ export class Invitaion {
   senderUserId: string;
 
   @Column('uuid')
-  recieverUserId: string;
+  receiverUserId: string;
 
   @Column()
   houseId: number;
