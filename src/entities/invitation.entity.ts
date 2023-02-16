@@ -19,6 +19,9 @@ export class Invitaion {
   @Column('uuid')
   recieverUserId: string;
 
+  @Column()
+  houseId: number;
+
   @Column({
     type: 'enum',
     enum: ['pending', 'accepted', 'decline'],
