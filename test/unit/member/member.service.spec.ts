@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { House } from 'src/entities/house.entity';
 import { HouseMember } from 'src/entities/houseMember.entity';
+import { Invitaion } from 'src/entities/invitation.entity';
+import { User } from 'src/entities/user.entity';
 import { MemberService } from '../../../src/member/member.service';
 
 describe('MemberService', () => {
@@ -17,6 +19,14 @@ describe('MemberService', () => {
         },
         {
           provide: getRepositoryToken(HouseMember),
+          useValue: {},
+        },
+        {
+          provide: getRepositoryToken(User),
+          useValue: {},
+        },
+        {
+          provide: getRepositoryToken(Invitaion),
           useValue: {},
         },
       ],
