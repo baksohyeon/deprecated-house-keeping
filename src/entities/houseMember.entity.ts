@@ -1,4 +1,4 @@
-import { BackLog, HouseRole } from 'src/interfaces/house-member.type';
+import { BackLog, HouseRole } from 'src/entities/enum/house-member.type';
 import {
   Column,
   CreateDateColumn,
@@ -39,6 +39,10 @@ export class HouseMember {
   @Column({ nullable: false })
   @Index()
   houseId: number;
+
+  @Column({ nullable: false })
+  @Index()
+  userId: string;
 
   @Column({
     type: 'enum',
