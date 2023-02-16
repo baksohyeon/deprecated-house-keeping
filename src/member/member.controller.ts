@@ -11,7 +11,7 @@ export class MemberController {
 
   @UseGuards(AuthGuard('jwt-access'))
   @Post()
-  async getMembers(
+  async createMembers(
     @Param('houseId') houseId: number,
     @RequestUser() user: User,
   ) {
@@ -23,7 +23,8 @@ export class MemberController {
   async inviteMember(
     @Param('houseId') houseId: number,
     @Body() createInvitationDto: CreateInvitationDto,
+    @RequestUser() user: User,
   ) {
-    return this.memberService.inviteMember(houseId, createInvitationDto);
+    return this.memberService.inviteMember(houseId, createInvitationDto, user);
   }
 }

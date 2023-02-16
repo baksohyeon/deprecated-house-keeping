@@ -7,7 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Status } from 'src/entities/enum/status.enum';
 import { House } from 'src/entities/house.entity';
 import { HouseMember } from 'src/entities/houseMember.entity';
-import { Invitaion } from 'src/entities/invitation.entity';
+import { Invitation } from 'src/entities/invitation.entity';
 import { User } from 'src/entities/user.entity';
 import { HouseService } from 'src/house/house.service';
 import { Repository } from 'typeorm';
@@ -20,8 +20,8 @@ export class MemberService {
     private readonly houseMemberRepository: Repository<HouseMember>,
     @InjectRepository(House)
     private readonly houseRepository: Repository<House>,
-    @InjectRepository(Invitaion)
-    private readonly invitationRepository: Repository<Invitaion>,
+    @InjectRepository(Invitation)
+    private readonly invitationRepository: Repository<Invitation>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
   ) {}
@@ -29,28 +29,37 @@ export class MemberService {
   async inviteMember(
     houseId: number,
     createInvitationDto: CreateInvitationDto,
+    user: User,
   ) {
     try {
-      const recievedUser = await this.userRepository.findOneOrFail({
+      const recievedUser = await this.userRepository.findOneByOrFail({
+        email: createInvitationDto.receiverEmail,
+      });
+
+      const isExistMember = await this.houseMemberRepository.findOne({
         where: {
-          email: createInvitationDto.receiverEmail,
+          houseId: houseId,
+          userId: recievedUser.id,
         },
       });
 
-      const isExistHouse = await this.houseRepository.findOneByOrFail({
+      if (isExistMember) {
+        throw new NotAcceptableException('Already exists member');
+      }
+      await this.houseRepository.findOneByOrFail({
         id: houseId,
       });
 
       const invitationObject = this.invitationRepository.create({
-        senderUserId: createInvitationDto.senderUserId,
-        recieverUserId: recievedUser.id,
+        senderUserId: user.id,
+        receiverUserId: recievedUser.id,
         houseId,
         status: Status.Pending,
-      } satisfies Partial<Invitaion>);
+      } satisfies Partial<Invitation>);
       const invitation = this.invitationRepository.save(invitationObject);
       return invitation;
     } catch (e) {
-      throw new NotFoundException();
+      return `${e.name}: ${e.message}`;
     }
   }
 
