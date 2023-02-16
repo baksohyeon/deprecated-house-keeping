@@ -4,7 +4,6 @@ import { HouseService } from '../../../src/house/house.service';
 
 describe('HouseController', () => {
   let controller: HouseController;
-  let service: HouseService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({

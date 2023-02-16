@@ -43,6 +43,7 @@ describe('HouseService', () => {
     house: new House(),
     user: new User(),
     houseId: new House().id,
+    userId: new User().id,
     backlog: 'No Tasks',
     role: 'Admin',
     createdAt: newDate,
