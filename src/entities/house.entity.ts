@@ -8,6 +8,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Housework } from './housework.entity';
 import { HouseMember } from './houseMember.entity';
 
 @Entity({ schema: 'housekeeping' })
@@ -32,4 +33,7 @@ export class House {
     onDelete: 'CASCADE',
   })
   houseMembers: HouseMember[];
+
+  @OneToMany(() => Housework, (houseChore) => houseChore.house)
+  houseChores: Housework[];
 }
