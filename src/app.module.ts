@@ -11,6 +11,7 @@ import tokenConfig from './config/token.config';
 import { redisStore } from 'cache-manager-redis-yet';
 import { HouseModule } from './house/house.module';
 import { MemberModule } from './member/member.module';
+import { HouseworkModule } from './housework/housework.module';
 
 @Module({
   imports: [
@@ -43,6 +44,8 @@ import { MemberModule } from './member/member.module';
     HouseModule,
 
     MemberModule,
+
+    HouseworkModule,
   ],
   controllers: [],
   providers: [],
