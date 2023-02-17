@@ -42,6 +42,7 @@ describe('MemberService', () => {
           useValue: {
             create: jest.fn().mockReturnValue(new Invitation()),
             save: jest.fn().mockReturnValue(new Invitation()),
+            findOne: jest.fn(),
           },
         },
       ],
@@ -71,6 +72,7 @@ describe('MemberService', () => {
       // Arrange
       const houseId = 1;
       const createInvitationDto: CreateInvitationDto = {
+        houseId,
         receiverEmail: 'nonexistinguser@example.com',
       };
       const user: User = { id: 'not-existing' } as any;
@@ -85,9 +87,7 @@ describe('MemberService', () => {
       );
 
       // Act and Assert
-      expect(
-        await memberService.inviteMember(houseId, createInvitationDto, user),
-      ).toBe(
+      expect(await memberService.inviteMember(createInvitationDto, user)).toBe(
         'EntityNotFoundError: Could not find any entity of type "User" matching: "userId"',
       );
     });
@@ -96,6 +96,7 @@ describe('MemberService', () => {
       // Arrange
       const houseId = 1;
       const createInvitationDto: CreateInvitationDto = {
+        houseId,
         receiverEmail: 'test@example.com',
       };
       const user: User = { id: 'already-existing-house-member' } as any;
@@ -109,8 +110,8 @@ describe('MemberService', () => {
 
       // Act and Assert
       expect(
-        memberService.inviteMember(houseId, createInvitationDto, user),
-      ).resolves.toBe('NotAcceptableException: Already exists member');
+        memberService.inviteMember(createInvitationDto, user),
+      ).resolves.toBe('NotAcceptableException: Already Exists Member');
     });
   });
 
@@ -118,6 +119,7 @@ describe('MemberService', () => {
     // Arrange
     const houseId = 1;
     const createInvitationDto: CreateInvitationDto = {
+      houseId,
       receiverEmail: 'nonexistingmember@example.com',
     };
     const user: User = { id: 'uuid' } as any;
@@ -129,11 +131,7 @@ describe('MemberService', () => {
     houseMemberRepoSpy.mockResolvedValue(null);
 
     // Act
-    const result = await memberService.inviteMember(
-      houseId,
-      createInvitationDto,
-      user,
-    );
+    const result = await memberService.inviteMember(createInvitationDto, user);
 
     // Assert
     expect(result).toBeInstanceOf(Invitation);
