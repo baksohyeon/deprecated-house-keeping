@@ -34,6 +34,6 @@ export class House {
   })
   houseMembers: HouseMember[];
 
-  @OneToMany(() => Housework, (houseChore) => houseChore.house)
-  houseChores: Housework[];
+  @OneToMany(() => Housework, (housework) => housework.house)
+  houseworks: Housework[];
 }

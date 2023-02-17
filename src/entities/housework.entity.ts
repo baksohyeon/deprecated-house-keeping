@@ -23,15 +23,15 @@ export class Housework {
   @Column()
   houseId: number;
 
-  @ManyToOne(() => House, (house) => house.houseChores)
+  @ManyToOne(() => House, (house) => house.houseworks)
   house: House;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt: Date;
 
-  @DeleteDateColumn()
+  @DeleteDateColumn({ type: 'timestamptz' })
   deletedAt: Date;
 }

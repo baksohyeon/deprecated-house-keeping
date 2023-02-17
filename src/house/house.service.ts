@@ -8,6 +8,8 @@ import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
 import { UpdateHouseDto } from './dto/update-house.dto';
 import { SoftDeleteQueryBuilder } from 'typeorm/query-builder/SoftDeleteQueryBuilder';
+import { CreateHouseworkDto } from '../housework/dto/createHousework.dto';
+import { Housework } from 'src/entities/housework.entity';
 
 @Injectable()
 export class HouseService {
