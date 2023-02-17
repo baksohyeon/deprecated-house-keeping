@@ -142,4 +142,6 @@ export class MemberService {
     }
     return house;
   }
+
+  // TODO: 유저 본인 혹은 그룹 관리자가 유저를 탈퇴시킬 수 있음
 }
