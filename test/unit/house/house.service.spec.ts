@@ -35,7 +35,7 @@ describe('HouseService', () => {
     createdAt: newDate,
     updatedAt: newDate,
     deletedAt: null,
-    houseChores: [],
+    houseworks: [],
   } satisfies House);
 
   const mockHouseMember = new HouseMember();
