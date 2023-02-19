@@ -12,6 +12,7 @@ import { redisStore } from 'cache-manager-redis-yet';
 import { HouseModule } from './house/house.module';
 import { MemberModule } from './member/member.module';
 import { HouseworkModule } from './housework/housework.module';
+import { TaskModule } from './task/task.module';
 
 @Module({
   imports: [
@@ -46,6 +47,8 @@ import { HouseworkModule } from './housework/housework.module';
     MemberModule,
 
     HouseworkModule,
+
+    TaskModule,
   ],
   controllers: [],
   providers: [],
