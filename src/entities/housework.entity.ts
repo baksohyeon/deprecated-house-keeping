@@ -4,15 +4,20 @@ import {
   DeleteDateColumn,
   Entity,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { House } from './house.entity';
+import { Task } from './task.entity';
 
 @Entity({ schema: 'housekeeping' })
 export class Housework {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @OneToMany(() => Task, (task) => task.housework)
+  tasks: Task[];
 
   @Column({ type: 'varchar' })
   title: string;
