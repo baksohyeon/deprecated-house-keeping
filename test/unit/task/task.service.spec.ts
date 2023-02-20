@@ -3,7 +3,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Housework } from 'src/entities/housework.entity';
 import { Task } from 'src/entities/task.entity';
 import { User } from 'src/entities/user.entity';
-import { TaskService } from '../../../src/task/task.service';
+import { TaskService } from '../../../src/module/task/task.service';
 
 describe('TaskService', () => {
   let service: TaskService;

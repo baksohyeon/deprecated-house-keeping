@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { RequestLoginUserDto } from 'src/auth/dto/request-login-user.dto';
+import { RequestLoginUserDto } from 'src/module/auth/dto/request-login-user.dto';
 import { HouseMember } from 'src/entities/houseMember.entity';
 import { User } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
-import { UserService } from '../../../src/user/user.service';
+import { UserService } from '../../../src/module/user/user.service';
 
 const mockRequestLoginUserDto = {
   email: 'test@abcd.com',

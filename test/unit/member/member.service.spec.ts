@@ -5,9 +5,9 @@ import { House } from 'src/entities/house.entity';
 import { HouseMember } from 'src/entities/houseMember.entity';
 import { Invitation } from 'src/entities/invitation.entity';
 import { User } from 'src/entities/user.entity';
-import { CreateInvitationDto } from 'src/member/dto/create-invitation.dto';
+import { CreateInvitationDto } from 'src/module/member/dto/create-invitation.dto';
 import { EntityNotFoundError, Repository } from 'typeorm';
-import { MemberService } from '../../../src/member/member.service';
+import { MemberService } from '../../../src/module/member/member.service';
 
 describe('MemberService', () => {
   let memberService: MemberService;

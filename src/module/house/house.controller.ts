@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { RequestUser } from 'src/decorator/request-user.decorator';
-import { CreateHouseDto } from 'src/house/dto/create-house.dto';
+import { CreateHouseDto } from 'src/module/house/dto/create-house.dto';
 import { User } from 'src/entities/user.entity';
 import { HouseService } from './house.service';
 import { UpdateHouseDto } from './dto/update-house.dto';

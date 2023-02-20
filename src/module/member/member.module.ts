@@ -4,7 +4,7 @@ import { House } from 'src/entities/house.entity';
 import { HouseMember } from 'src/entities/houseMember.entity';
 import { Invitation } from 'src/entities/invitation.entity';
 import { User } from 'src/entities/user.entity';
-import { HouseModule } from 'src/house/house.module';
+import { HouseModule } from 'src/module/house/house.module';
 import { MemberController } from './member.controller';
 import { MemberService } from './member.service';
 

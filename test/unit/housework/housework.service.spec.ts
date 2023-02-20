@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Housework } from 'src/entities/housework.entity';
-import { HouseworkService } from '../../../src/housework/housework.service';
+import { HouseworkService } from '../../../src/module/housework/housework.service';
 
 describe('HouseworkService', () => {
   let service: HouseworkService;

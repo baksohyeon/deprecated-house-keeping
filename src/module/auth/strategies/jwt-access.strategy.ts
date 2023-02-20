@@ -8,8 +8,8 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy, VerifiedCallback } from 'passport-jwt';
 import { AccessTokenPayload } from 'src/interfaces/tokens.interface';
-import { RedisService } from 'src/auth/redis/redis.service';
-import { UserService } from 'src/user/user.service';
+import { RedisService } from 'src/module/auth/redis/redis.service';
+import { UserService } from 'src/module/user/user.service';
 
 @Injectable()
 export class JwtAuthStrategy extends PassportStrategy(Strategy, 'jwt-access') {
@@ -20,7 +20,7 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy, 'jwt-access') {
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      ignoreExpiration: false,
+      ignoreExpiration: true,
       secretOrKey: configService.get<string>('JWT_ACCESS_TOKEN_SECRET'),
     });
   }

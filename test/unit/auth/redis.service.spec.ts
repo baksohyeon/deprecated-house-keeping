@@ -1,6 +1,6 @@
 import { CACHE_MANAGER, ValueProvider } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { RedisService } from '../../../src/auth/redis/redis.service';
+import { RedisService } from '../../../src/module/auth/redis/redis.service';
 import { Cache, Store } from 'cache-manager';
 import { PublicPart } from '../../../src/util/public-part.type';
 

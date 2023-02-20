@@ -6,7 +6,7 @@ import { googleConfiguration } from 'src/config/google.config';
 import { User } from 'src/entities/user.entity';
 import { LoginResponse } from 'src/interfaces/login-response.interface';
 import { Tokens } from 'src/interfaces/tokens.interface';
-import { UserService } from 'src/user/user.service';
+import { UserService } from 'src/module/user/user.service';
 import { AuthService } from '../auth.service';
 import { RequestLoginUserDto } from '../dto/request-login-user.dto';
 

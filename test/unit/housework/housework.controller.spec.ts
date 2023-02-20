@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { HouseworkService } from 'src/housework/housework.service';
-import { HouseworkController } from '../../../src/housework/housework.controller';
+import { HouseworkService } from 'src/module/housework/housework.service';
+import { HouseworkController } from '../../../src/module/housework/housework.controller';
 
 describe('HouseworkController', () => {
   let controller: HouseworkController;

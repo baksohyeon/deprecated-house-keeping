@@ -10,7 +10,7 @@ import { House } from 'src/entities/house.entity';
 import { HouseMember } from 'src/entities/houseMember.entity';
 import { Invitation } from 'src/entities/invitation.entity';
 import { User } from 'src/entities/user.entity';
-import { HouseService } from 'src/house/house.service';
+import { HouseService } from 'src/module/house/house.service';
 import { Repository } from 'typeorm';
 import { CreateInvitationDto } from './dto/create-invitation.dto';
 import { UpdateInvitationDto } from './dto/update-invitation.dto';

@@ -4,10 +4,10 @@ import { mockRepository } from 'test/mocks/reposiotry.mock';
 import { House } from 'src/entities/house.entity';
 import { HouseMember } from 'src/entities/houseMember.entity';
 import { Repository } from 'typeorm';
-import { HouseService } from '../../../src/house/house.service';
-import { CreateHouseDto } from 'src/house/dto/create-house.dto';
+import { HouseService } from '../../../src/module/house/house.service';
+import { CreateHouseDto } from 'src/module/house/dto/create-house.dto';
 import { User } from 'src/entities/user.entity';
-import { UpdateHouseDto } from 'src/house/dto/update-house.dto';
+import { UpdateHouseDto } from 'src/module/house/dto/update-house.dto';
 
 describe('HouseService', () => {
   let houseService: HouseService;
