@@ -25,7 +25,7 @@ describe('HouseService', () => {
     updatedAt: newDate,
     deletedAt: null,
     housemembers: [],
-  } satisfies User);
+  } as User);
 
   const mockHouse = new House();
   Object.assign(mockHouse, {

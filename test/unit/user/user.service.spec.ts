@@ -19,7 +19,7 @@ const mockUser = {
   createdAt: new Date(),
   updatedAt: new Date(),
   deletedAt: null,
-} satisfies User;
+} as User;
 
 describe('UserService', () => {
   let userService: UserService;
