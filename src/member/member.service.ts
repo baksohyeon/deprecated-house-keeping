@@ -92,6 +92,7 @@ export class MemberService {
         role: 'Member',
         backlog: 'No Tasks',
       } as Partial<HouseMember>);
+      await this.updateInvitation(updateInvitationDto, user);
       return await this.houseMemberRepository.save(houseMemberObject);
     } catch (e) {
       throw `${e.name}: ${e.message}`;
@@ -102,14 +103,22 @@ export class MemberService {
     updateInvitationDto: UpdateInvitationDto,
     user: User,
   ) {
-    if (updateInvitationDto.status === 'declined') {
-      return this.invitationRepository.update(
-        updateInvitationDto.invitationId,
-        {
-          status: updateInvitationDto.status,
-        },
-      );
+    if (updateInvitationDto.status !== Status.Declined) {
+      throw new BadRequestException();
     }
+    return this.updateInvitation(updateInvitationDto, user);
+  }
+
+  private async updateInvitation(
+    updateInvitationDto: UpdateInvitationDto,
+    user: User,
+  ) {
+    return this.invitationRepository.update(
+      { id: updateInvitationDto.invitationId, receiverUserId: user.id },
+      {
+        status: updateInvitationDto.status,
+      },
+    );
   }
 
   private async isValidInvitationReturnHouse(
