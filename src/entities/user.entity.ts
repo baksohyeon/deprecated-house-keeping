@@ -10,6 +10,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { HouseMember } from './houseMember.entity';
+import { Task } from './task.entity';
 
 @Entity({ schema: 'housekeeping' })
 export class User {
@@ -36,4 +37,7 @@ export class User {
     cascade: ['soft-remove'],
   })
   housemembers: HouseMember[];
+
+  @OneToMany(() => Task, (task) => task.user)
+  tasks: Task[];
 }

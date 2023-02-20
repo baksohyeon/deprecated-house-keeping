@@ -16,14 +16,6 @@ export class Task {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne((type) => User)
-  @JoinColumn([
-    { name: 'creator_user_id' },
-    { name: 'assignee_user_id' },
-    { name: 'assigner_user_id' },
-  ])
-  user: User;
-
   @ManyToOne(() => Housework, (housework) => housework.tasks)
   housework: Housework;
 
@@ -35,6 +27,14 @@ export class Task {
 
   @Column({ type: 'uuid' })
   assignerUserId: string;
+
+  @ManyToOne((type) => User)
+  @JoinColumn([
+    { name: 'assigner_user_id', referencedColumnName: 'id' },
+    { name: 'assignee_user_id', referencedColumnName: 'id' },
+    { name: 'creator_user_id', referencedColumnName: 'id' },
+  ])
+  user: User;
 
   @Column()
   houseworkId: number;
