@@ -1,34 +1,59 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Put,
+} from '@nestjs/common';
 import { TaskService } from './task.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import { RequestUser } from 'src/decorator/request-user.decorator';
+import { User } from 'src/entities/user.entity';
+import { AuthGuard } from '@nestjs/passport';
 
-@Controller('task')
+@Controller('house/:houseId/task')
 export class TaskController {
   constructor(private readonly taskService: TaskService) {}
 
-  @Post()
-  create(@Body() createTaskDto: CreateTaskDto) {
-    return this.taskService.create(createTaskDto);
+  @UseGuards(AuthGuard('jwt-access'))
+  @Post('/create')
+  async create(
+    @Param('houseId') houseId: number,
+    @Body() createTaskDto: CreateTaskDto,
+    @RequestUser() user: User,
+  ) {
+    return this.taskService.create(houseId, createTaskDto, user);
   }
 
+  @UseGuards(AuthGuard('jwt-access'))
   @Get()
-  findAll() {
-    return this.taskService.findAll();
+  async findAll(@Param('houseId') houseId: number) {
+    return this.taskService.findAll(houseId);
   }
-
+  @UseGuards(AuthGuard('jwt-access'))
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.taskService.findOne(+id);
+  findOne(@Param('houseId') houseId: number, @Param('taskId') taskId: number) {
+    return this.taskService.findOne(houseId, taskId);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto) {
-    return this.taskService.update(+id, updateTaskDto);
+  @UseGuards(AuthGuard('jwt-access'))
+  @Put('/update')
+  update(
+    @Param('houseId') houseId: number,
+    @Body() updateTaskDto: UpdateTaskDto,
+    @RequestUser() user: User,
+  ) {
+    return this.taskService.update(houseId, updateTaskDto, user);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.taskService.remove(+id);
+  @UseGuards(AuthGuard('jwt-access'))
+  @Delete(':taskId')
+  remove(@Param('houseId') houseId: number, @Param('taskId') taskId: number) {
+    return this.taskService.softDelete(houseId, taskId);
   }
 }

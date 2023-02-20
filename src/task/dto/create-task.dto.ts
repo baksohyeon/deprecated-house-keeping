@@ -1,11 +1,4 @@
 export class CreateTaskDto {
-  id: number;
-
-  creatorUserId?: string;
-
+  houseworkId: number;
   assigneeUserId?: string;
-
-  assignerUserId?: string;
-
-  isCompleted: boolean;
 }
