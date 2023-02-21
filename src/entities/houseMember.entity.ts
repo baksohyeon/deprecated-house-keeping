@@ -36,11 +36,11 @@ export class HouseMember {
   })
   role: Role;
 
-  @Column({ nullable: false })
+  @Column()
   @Index()
   houseId: number;
 
-  @Column({ nullable: false })
+  @Column()
   @Index()
   userId: string;
 
