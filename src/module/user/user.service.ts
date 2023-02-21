@@ -31,6 +31,32 @@ export class UserService {
     return user;
   }
 
+  async getUserWithRoles(user: User) {
+    const profile = this.userRepository.find({
+      select: {
+        housemembers: {
+          role: true,
+          house: {
+            name: true,
+            id: true,
+          },
+        },
+      },
+      where: {
+        id: user.id,
+        housemembers: {
+          userId: user.id,
+        },
+      },
+      relations: {
+        // housemembers: true,
+        housemembers: {
+          house: true,
+        },
+      },
+    });
+  }
+
   async registerUser(userInfo: RequestLoginUserDto) {
     const user = await this.findUserByEmail(userInfo.email);
     if (!user) {
