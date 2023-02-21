@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { HouseMember } from 'src/entities/houseMember.entity';
 import { Housework } from 'src/entities/housework.entity';
 import { Task } from 'src/entities/task.entity';
 import { User } from 'src/entities/user.entity';
@@ -50,7 +51,7 @@ export class TaskService {
     return this.taskRepository.save(taskEntity);
   }
 
-  async findAll(houseId: number) {
+  async findAllTasksByHouse(houseId: number) {
     return this.taskRepository.find({
       relations: {
         housework: {
@@ -61,6 +62,20 @@ export class TaskService {
         housework: {
           houseId,
         },
+      },
+    });
+  }
+
+  async getAssignedTasksAndCount(houseId: number, userId: string) {
+    return this.taskRepository.findAndCount({
+      where: {
+        assigneeUserId: userId,
+        housework: {
+          houseId: houseId,
+        },
+      },
+      relations: {
+        housework: true,
       },
     });
   }

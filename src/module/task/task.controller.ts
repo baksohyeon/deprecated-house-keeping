@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   Put,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { TaskService } from './task.service';
 import { CreateTaskDto } from './dto/create-task.dto';
@@ -32,18 +33,30 @@ export class TaskController {
 
   @UseGuards(AuthGuard('jwt-access'))
   @Get()
-  async findAll(@Param('houseId') houseId: number) {
-    return this.taskService.findAll(houseId);
+  async findAll(@Param('houseId', ParseIntPipe) houseId: number) {
+    return this.taskService.findAllTasksByHouse(houseId);
   }
   @UseGuards(AuthGuard('jwt-access'))
-  @Get(':id')
-  findOne(@Param('houseId') houseId: number, @Param('taskId') taskId: number) {
+  @Get('/assigned')
+  async findOne(
+    @Param('houseId', ParseIntPipe) houseId: number,
+    @RequestUser() user: User,
+  ) {
+    return this.taskService.getAssignedTasksAndCount(houseId, user.id);
+  }
+
+  @UseGuards(AuthGuard('jwt-access'))
+  @Get('/:taskId')
+  async getAssignedTasksAndCount(
+    @Param('houseId', ParseIntPipe) houseId: number,
+    @Param('taskId', ParseIntPipe) taskId: number,
+  ) {
     return this.taskService.findOne(houseId, taskId);
   }
 
   @UseGuards(AuthGuard('jwt-access'))
   @Put('/update')
-  update(
+  async update(
     @Param('houseId') houseId: number,
     @Body() updateTaskDto: UpdateTaskDto,
     @RequestUser() user: User,
@@ -53,7 +66,10 @@ export class TaskController {
 
   @UseGuards(AuthGuard('jwt-access'))
   @Delete(':taskId')
-  remove(@Param('houseId') houseId: number, @Param('taskId') taskId: number) {
+  async remove(
+    @Param('houseId') houseId: number,
+    @Param('taskId') taskId: number,
+  ) {
     return this.taskService.softDelete(houseId, taskId);
   }
 }
