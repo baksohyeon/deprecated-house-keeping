@@ -32,7 +32,7 @@ export class UserService {
   }
 
   async getUserWithRoles(user: User) {
-    const profile = this.userRepository.find({
+    const profile = await this.userRepository.findOne({
       select: {
         housemembers: {
           role: true,
@@ -55,6 +55,8 @@ export class UserService {
         },
       },
     });
+    const roles = profile.housemembers;
+    return profile;
   }
 
   async registerUser(userInfo: RequestLoginUserDto) {
