@@ -5,10 +5,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Role } from 'src/entities/enum/role.enum';
 import { Status } from 'src/entities/enum/status.enum';
 import { House } from 'src/entities/house.entity';
 import { HouseMember } from 'src/entities/houseMember.entity';
 import { Invitation } from 'src/entities/invitation.entity';
+import { Task } from 'src/entities/task.entity';
 import { User } from 'src/entities/user.entity';
 import { HouseService } from 'src/module/house/house.service';
 import { Repository } from 'typeorm';
@@ -89,8 +91,7 @@ export class MemberService {
       const houseMemberObject = this.houseMemberRepository.create({
         house,
         user,
-        role: 'Member',
-        backlog: 'No Tasks',
+        role: Role.Member,
       } as Partial<HouseMember>);
       await this.updateInvitation(updateInvitationDto, user);
       return await this.houseMemberRepository.save(houseMemberObject);
@@ -151,6 +152,4 @@ export class MemberService {
     }
     return house;
   }
-
-  // TODO: 유저 본인 혹은 그룹 관리자가 유저를 탈퇴시킬 수 있음
 }

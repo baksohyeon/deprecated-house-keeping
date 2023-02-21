@@ -1,4 +1,4 @@
-import { BackLog, HouseRole } from 'src/entities/enum/house-member.type';
+import { Role } from 'src/entities/enum/role.enum';
 import {
   Column,
   CreateDateColumn,
@@ -34,7 +34,7 @@ export class HouseMember {
     enum: ['Admin', 'Member'],
     default: 'member',
   })
-  role: HouseRole;
+  role: Role;
 
   @Column({ nullable: false })
   @Index()
@@ -43,13 +43,6 @@ export class HouseMember {
   @Column({ nullable: false })
   @Index()
   userId: string;
-
-  @Column({
-    type: 'enum',
-    enum: ['Tasks To do', 'No Tasks'],
-    default: 'No tasks',
-  })
-  backlog: BackLog;
 
   @CreateDateColumn()
   createdAt: Date;

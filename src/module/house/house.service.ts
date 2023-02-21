@@ -10,6 +10,7 @@ import { UpdateHouseDto } from './dto/update-house.dto';
 import { SoftDeleteQueryBuilder } from 'typeorm/query-builder/SoftDeleteQueryBuilder';
 import { CreateHouseworkDto } from '../housework/dto/createHousework.dto';
 import { Housework } from 'src/entities/housework.entity';
+import { Role } from 'src/entities/enum/role.enum';
 
 @Injectable()
 export class HouseService {
@@ -33,8 +34,7 @@ export class HouseService {
     Object.assign(houseMemberEntity, {
       house,
       user,
-      role: 'Admin',
-      backlog: 'No Tasks',
+      role: Role.Admin,
     } as Partial<HouseMember>);
     return this.houseMemberRepository.save(houseMemberEntity);
   }
@@ -52,7 +52,9 @@ export class HouseService {
     try {
       return await this.houseRepository.findOneOrFail({
         relations: {
-          houseMembers: true,
+          houseMembers: {
+            user: true,
+          },
         },
         where: {
           id: houseId,
