@@ -19,10 +19,10 @@ import {
 } from 'src/interfaces/tokens.interface';
 
 import { Cache } from 'cache-manager';
-import { REDIS_CACHE } from 'src/module/auth/redis/redis.module';
+import { REDIS_CACHE } from 'src/module/redis/redis.module';
 import tokenConfig from 'src/config/token.config';
 import { ReissuedTokenResult } from 'src/interfaces/reissued-token-result';
-import { RedisService } from './redis/redis.service';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class AuthService {

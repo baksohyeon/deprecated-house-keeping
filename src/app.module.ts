@@ -6,7 +6,7 @@ import { databaseConfiguration } from './config/database.config';
 import { googleConfiguration } from './config/google.config';
 import { TypeOrmConfigService } from './config/typeorm.config';
 import { UserModule } from './module/user/user.module';
-import { RedisCacheModule } from './module/auth/redis/redis.module';
+import { RedisCacheModule } from './module/redis/redis.module';
 import tokenConfig from './config/token.config';
 import { redisStore } from 'cache-manager-redis-yet';
 import { HouseModule } from './module/house/house.module';

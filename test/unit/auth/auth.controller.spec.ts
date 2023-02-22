@@ -9,7 +9,7 @@ import { mockedConfigService } from '../../mocks/config.service.mock';
 import { mockRepository } from '../../mocks/reposiotry.mock';
 import tokenConfig from 'src/config/token.config';
 import { mockTokenConfig } from '../../mocks/token.config.mock';
-import { RedisService } from '../../../src/module/auth/redis/redis.service';
+import { RedisService } from '../../../src/module/redis/redis.service';
 import { AuthController } from '../../../src/module/auth/auth.controller';
 import { HouseMember } from 'src/entities/houseMember.entity';
 

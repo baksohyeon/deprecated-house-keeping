@@ -13,7 +13,7 @@ import {
   refreshTokenCookieExtractor,
 } from 'src/util/cookie-extractor.util';
 import { AuthService } from '../auth.service';
-import { RedisService } from '../redis/redis.service';
+import { RedisService } from '../../redis/redis.service';
 
 @Injectable()
 export class JwtRefreshStrategy extends PassportStrategy(

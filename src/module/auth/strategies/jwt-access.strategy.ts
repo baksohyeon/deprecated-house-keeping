@@ -8,7 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy, VerifiedCallback } from 'passport-jwt';
 import { AccessTokenPayload } from 'src/interfaces/tokens.interface';
-import { RedisService } from 'src/module/auth/redis/redis.service';
+import { RedisService } from 'src/module/redis/redis.service';
 import { UserService } from 'src/module/user/user.service';
 
 @Injectable()
