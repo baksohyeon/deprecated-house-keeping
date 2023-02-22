@@ -10,7 +10,7 @@ export const REQUEST_CONTEXT = '_requestContext';
 
 @Injectable()
 export class InjectUserInterceptor implements NestInterceptor {
-  constructor(private type?: NonNullable<'query' | 'body' | 'param'>) {}
+  constructor(private type?: 'query' | 'body' | 'params' | null) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest();
