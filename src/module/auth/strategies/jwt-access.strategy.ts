@@ -31,7 +31,6 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy, 'jwt-access') {
     const userId = jwtPayload.userId;
     // TODO: access 토큰이 레디스에 존재하면 오류 반환
     const user = await this.userService.findUserById(userId);
-    const userWithGroupRoles = await this.userService.getUserWithRoles(user);
-    done(null, userWithGroupRoles);
+    done(null, user);
   }
 }
