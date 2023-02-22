@@ -5,7 +5,7 @@ import { House } from 'src/entities/house.entity';
 import { HouseMember } from 'src/entities/houseMember.entity';
 import { User } from 'src/entities/user.entity';
 import { UserService } from 'src/module/user/user.service';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, EntityManager, Repository } from 'typeorm';
 import { UpdateHouseDto } from './dto/update-house.dto';
 import { SoftDeleteQueryBuilder } from 'typeorm/query-builder/SoftDeleteQueryBuilder';
 import { CreateHouseworkDto } from '../housework/dto/createHousework.dto';
@@ -26,19 +26,22 @@ export class HouseService {
     createHouseDto: CreateHouseDto,
     user: User,
   ): Promise<HouseMember> {
-    return this.dataSource.transaction(async (manager) => {
-      const houseEntity = this.houseRepository.create({
-        name: createHouseDto.name,
-      });
-      const house = await manager.save(houseEntity);
-      const houseMemberEntity = new HouseMember();
-      Object.assign(houseMemberEntity, {
-        house,
-        user,
-        role: Role.Admin,
-      } as Partial<HouseMember>);
-      return manager.save(houseMemberEntity);
-    });
+    return await this.dataSource.transaction(
+      async (manager: EntityManager): Promise<HouseMember> => {
+        const houseEntity = manager.create(House, {
+          name: createHouseDto.name,
+        });
+        const house = await manager.save(houseEntity);
+
+        const houseMemberEntity = manager.create(HouseMember, {
+          house,
+          user,
+          role: Role.Admin,
+        });
+
+        return manager.save(houseMemberEntity);
+      },
+    );
   }
 
   async getAllHouseByUser(user: User) {
