@@ -13,8 +13,6 @@ export class UserController {
   @UseGuards(AuthGuard('jwt-access'))
   @Get('/profile')
   async getUserProfile(@RequestUser() user: User) {
-    const profile = this.userService.getUserWithRoles(user);
-    console.log(profile);
-    return profile;
+    return this.userService.findUserById(user.id);
   }
 }
