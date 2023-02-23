@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  HttpStatus,
   Injectable,
   NotAcceptableException,
   NotFoundException,
@@ -166,8 +167,38 @@ export class MemberService {
     return this.updateInvitation(updateInvitationDto, user);
   }
 
-  async softDeleteMember(userId: string) {
-    await this.houseMemberRepository.softDelete({ userId });
+  async softDeleteMember(
+    houseId: number,
+    deletedUserId: string,
+    requestUserId: string,
+  ) {
+    const isAdmin = await this.houseMemberRepository.findOneBy({
+      userId: requestUserId,
+      role: Role.Admin,
+      houseId: houseId,
+    });
+    const isMember = await this.houseMemberRepository.findOneBy({
+      userId: requestUserId,
+      role: Role.Member,
+      houseId,
+    });
+
+    // 삭제 대상 유저가 멤버인지 확인한다.
+    const deleteUser = await this.houseMemberRepository.findOneByOrFail({
+      userId: deletedUserId,
+      houseId,
+    });
+
+    // TODO: 삭제 대상 유저가 Admin 인 경우 삭제 불가능하게 만들기
+
+    if (isAdmin || isMember) {
+      await this.houseMemberRepository.softRemove(deleteUser);
+      return {
+        Status: HttpStatus.ACCEPTED,
+      };
+    } else {
+      throw new NotAcceptableException('유효하지 않는 요청입니다.');
+    }
   }
 
   private async updateInvitation(

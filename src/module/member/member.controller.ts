@@ -11,6 +11,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { RequestUser } from 'src/decorator/request-user.decorator';
 import { User } from 'src/entities/user.entity';
 import { CreateInvitationDto } from './dto/create-invitation.dto';
+import { DeleteMemberDto } from './dto/delete-member.dto';
 import { UpdateInvitationDto } from './dto/update-invitation.dto';
 import { MemberService } from './member.service';
 
@@ -45,8 +46,17 @@ export class MemberController {
     return this.memberService.declineInvitation(updateInvitationDto, user);
   }
 
+  @UseGuards(AuthGuard('jwt-access'))
   @Delete()
-  async deleteMember(@Body('userId') userId: string) {
-    return this.memberService.softDeleteMember(userId);
+  async deleteMember(
+    @Param('houseId') houseId: number,
+    @Body('userId') deleteMemberDto: DeleteMemberDto,
+    @RequestUser() user: User,
+  ) {
+    return this.memberService.softDeleteMember(
+      houseId,
+      deleteMemberDto.deleteUserId,
+      user.id,
+    );
   }
 }
