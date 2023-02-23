@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { RequestUser } from 'src/decorator/request-user.decorator';
 import { User } from 'src/entities/user.entity';
@@ -35,5 +43,10 @@ export class MemberController {
     @RequestUser() user: User,
   ) {
     return this.memberService.declineInvitation(updateInvitationDto, user);
+  }
+
+  @Delete()
+  async deleteMember(@Body('userId') userId: string) {
+    return this.memberService.softDeleteMember(userId);
   }
 }

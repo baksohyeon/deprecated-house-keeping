@@ -32,48 +32,73 @@ export class MemberService {
 
   async inviteMember(createInvitationDto: CreateInvitationDto, user: User) {
     try {
-      // TODO: 이미 존재하는 요청인 경우, 에러 요청
-
-      const recievedUser = await this.userRepository.findOneByOrFail({
-        email: createInvitationDto.receiverEmail,
-      });
-
-      await this.houseRepository.findOneByOrFail({
-        id: createInvitationDto.houseId,
-      });
-
-      const isAlreadyRequested = await this.invitationRepository.findOne({
+      const recieverUser = await this.userRepository.findOneOrFail({
         where: {
-          houseId: createInvitationDto.houseId,
-          receiverUserId: recievedUser.id,
+          email: createInvitationDto.receiverEmail,
         },
       });
-
-      if (isAlreadyRequested) {
-        throw new NotAcceptableException('Already Requested Invitation');
-      }
-
-      const isExistMember = await this.houseMemberRepository.findOne({
-        where: {
-          houseId: createInvitationDto.houseId,
-          userId: recievedUser.id,
-        },
-      });
-
-      if (isExistMember) {
-        throw new NotAcceptableException('Already Exists Member');
-      }
+      await this.validateInvitation(
+        user.id,
+        createInvitationDto.houseId,
+        recieverUser.id,
+      );
 
       const invitationObject = this.invitationRepository.create({
         senderUserId: user.id,
-        receiverUserId: recievedUser.id,
+        receiverUserId: recieverUser.id,
         houseId: createInvitationDto.houseId,
         status: Status.Pending,
-      } satisfies Partial<Invitation>);
+      });
+
       const invitation = this.invitationRepository.save(invitationObject);
       return invitation;
     } catch (e) {
       return `${e.name}: ${e.message}`;
+    }
+  }
+
+  private async validateInvitation(
+    senderUserId: string,
+    houseId: number,
+    recieverUserId: string,
+  ) {
+    // 초대를 요청한 유저가 해당 house의 멤버가 아닐 경우 에러 발생
+    await this.houseMemberRepository.findOneOrFail({
+      where: {
+        userId: senderUserId,
+        houseId: houseId,
+      },
+    });
+
+    // house 가 존재하지 않는 경우 에러 발생
+    await this.houseRepository.findOneByOrFail({
+      id: houseId,
+    });
+
+    // 초대받은 유저가 이미 house의 멤버일 경우 에러 발생
+    const isAlreadyMember = this.houseMemberRepository.findOneBy({
+      userId: recieverUserId,
+      houseId: houseId,
+    });
+
+    if (isAlreadyMember) {
+      throw new NotAcceptableException(
+        'The invited user is already member of the house ',
+      );
+    }
+
+    // 요청을 기다리는 초대가 있을 경우 에러 발생
+    const isExistPendingInvitation =
+      await this.invitationRepository.findOneOrFail({
+        where: {
+          houseId: houseId,
+          receiverUserId: recieverUserId,
+          status: Status.Pending,
+        },
+      });
+
+    if (isExistPendingInvitation) {
+      throw new NotAcceptableException('Already Requested Invitation');
     }
   }
 
@@ -97,45 +122,6 @@ export class MemberService {
       return await this.houseMemberRepository.save(houseMemberObject);
     } catch (e) {
       throw `${e.name}: ${e.message}`;
-    }
-  }
-
-  async declineInvitation(
-    updateInvitationDto: UpdateInvitationDto,
-    user: User,
-  ) {
-    if (updateInvitationDto.status !== Status.Declined) {
-      throw new BadRequestException();
-    }
-    return this.updateInvitation(updateInvitationDto, user);
-  }
-
-  private async updateInvitation(
-    updateInvitationDto: UpdateInvitationDto,
-    user: User,
-  ) {
-    return this.invitationRepository.update(
-      { id: updateInvitationDto.invitationId, receiverUserId: user.id },
-      {
-        status: updateInvitationDto.status,
-      },
-    );
-  }
-
-  async isValidHouseMember(houseId: number, userId: string) {
-    if (userId && Number.isInteger(houseId)) {
-      const house = await this.houseMemberRepository.findOne({
-        where: {
-          userId,
-          houseId,
-        },
-      });
-      if (!house) {
-        return false;
-      }
-      return true;
-    } else {
-      return false;
     }
   }
 
@@ -168,5 +154,54 @@ export class MemberService {
       throw new NotAcceptableException();
     }
     return house;
+  }
+
+  async declineInvitation(
+    updateInvitationDto: UpdateInvitationDto,
+    user: User,
+  ) {
+    if (updateInvitationDto.status !== Status.Declined) {
+      throw new BadRequestException();
+    }
+    return this.updateInvitation(updateInvitationDto, user);
+  }
+
+  async softDeleteMember(userId: string) {
+    await this.houseMemberRepository.softDelete({ userId });
+  }
+
+  private async updateInvitation(
+    updateInvitationDto: UpdateInvitationDto,
+    user: User,
+  ) {
+    return this.invitationRepository.update(
+      { id: updateInvitationDto.invitationId, receiverUserId: user.id },
+      {
+        status: updateInvitationDto.status,
+      },
+    );
+  }
+
+  async isValidHouseMember(houseId: number, userId: string) {
+    const house = await this.houseRepository.findOne({
+      where: {
+        id: houseId,
+      },
+    });
+    const member = await this.houseMemberRepository.findOne({
+      where: {
+        userId,
+        houseId,
+      },
+    });
+    if (!house) {
+      throw new NotFoundException('요청한 그룹이 존재하지 않습니다.');
+    }
+
+    if (!member) {
+      return false;
+    }
+
+    return true;
   }
 }
