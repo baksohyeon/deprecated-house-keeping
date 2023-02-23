@@ -6,9 +6,6 @@ import { REQUEST_CONTEXT } from 'src/validators/Interceptor/inject-user.intercep
 export class StripRequestContextPipe implements PipeTransform {
   transform(value: any) {
     const { _requestContext, ...params } = value;
-    if (params.houseId) {
-      params.houseId = parseInt(params.houseId);
-    }
     return params;
   }
 }
