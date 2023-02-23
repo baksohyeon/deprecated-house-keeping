@@ -45,17 +45,14 @@ export class HouseService {
   }
 
   async getAllHouseByUser(user: User) {
-    return this.houseMemberRepository.find({
-      where: {
-        user: { id: user.id },
-      },
-      relations: ['user', 'house'],
+    return this.houseMemberRepository.findBy({
+      userId: user.id,
     });
   }
 
   async getHouseByHouseId(houseId: number) {
     try {
-      return await this.houseRepository.findOneOrFail({
+      return this.houseRepository.findOneOrFail({
         relations: {
           houseMembers: {
             user: true,
@@ -64,7 +61,6 @@ export class HouseService {
         where: {
           id: houseId,
         },
-        transaction: true,
       });
     } catch (e) {
       throw new NotFoundException(e.message);

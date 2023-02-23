@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpStatus,
   Param,
   Post,
   Put,
@@ -14,6 +15,8 @@ import { CreateHouseDto } from 'src/module/house/dto/create-house.dto';
 import { User } from 'src/entities/user.entity';
 import { HouseService } from './house.service';
 import { UpdateHouseDto } from './dto/update-house.dto';
+import { InjectUserToParam } from 'src/validators/decorator/inject.user.decorator';
+import { HouseParams } from '../../validators/house-params';
 
 @Controller('house')
 export class HouseController {
@@ -31,28 +34,33 @@ export class HouseController {
   @UseGuards(AuthGuard('jwt-access'))
   @Get('/all')
   async getHouses(@RequestUser() user: User) {
-    return await this.houseService.getAllHouseByUser(user);
+    return this.houseService.getAllHouseByUser(user);
   }
 
+  @InjectUserToParam()
   @UseGuards(AuthGuard('jwt-access'))
   @Get('/:houseId')
-  async getHouseByHouseId(@Param('houseId') houseId: number) {
-    return this.houseService.getHouseByHouseId(houseId);
+  async getHouseByHouseId(@Param() params: HouseParams) {
+    return this.houseService.getHouseByHouseId(params.houseId);
   }
 
+  @InjectUserToParam()
   @UseGuards(AuthGuard('jwt-access'))
   @Put('/:houseId/update')
   async renameHouse(
-    @Param('houseId') houseId: number,
+    @Param() params: HouseParams,
     @Body() updateHouseDto: UpdateHouseDto,
   ) {
-    return this.houseService.renameHouse(houseId, updateHouseDto);
+    await this.houseService.renameHouse(params.houseId, updateHouseDto);
+    return {
+      status: HttpStatus.ACCEPTED,
+    };
   }
-
+  @InjectUserToParam()
   @UseGuards(AuthGuard('jwt-access'))
   @Delete('/:houseId')
-  async deleteHouse(@Param('houseId') houseId: number) {
-    await this.houseService.softDeleteHouse(houseId);
+  async deleteHouse(@Param() params: HouseParams) {
+    await this.houseService.softDeleteHouse(params.houseId);
     return {
       staus: 201,
     };
