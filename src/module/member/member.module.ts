@@ -12,5 +12,6 @@ import { MemberService } from './member.service';
   imports: [TypeOrmModule.forFeature([HouseMember, House, Invitation, User])],
   controllers: [MemberController],
   providers: [MemberService],
+  exports: [MemberService],
 })
 export class MemberModule {}

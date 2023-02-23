@@ -122,6 +122,23 @@ export class MemberService {
     );
   }
 
+  async isValidHouseMember(houseId: number, userId: string) {
+    if (userId && Number.isInteger(houseId)) {
+      const house = await this.houseMemberRepository.findOne({
+        where: {
+          userId,
+          houseId,
+        },
+      });
+      if (!house) {
+        return false;
+      }
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   private async isValidInvitationReturnHouse(
     invitationId: number,
     userId: string,

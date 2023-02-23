@@ -20,7 +20,6 @@ export class InjectUserInterceptor implements NestInterceptor {
         user: request.user,
       };
     }
-
     return next.handle();
   }
 }
