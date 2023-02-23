@@ -17,7 +17,9 @@ async function bootstrap() {
     origin: process.env.FRONTEND_URL,
   });
   app.use(cookieParser());
-  app.useGlobalPipes(new ValidationPipe({ forbidUnknownValues: false }));
+  app.useGlobalPipes(
+    new ValidationPipe({ forbidUnknownValues: false, transform: true }),
+  );
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
   await app.listen(3001);
   if (module.hot) {

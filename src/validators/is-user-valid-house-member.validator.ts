@@ -29,14 +29,13 @@ export class IsValidHouseMemberValidatorConstraint
   constructor(private memberService: MemberService) {}
 
   async validate(houseId: number, args?: ExtendedValidationArguments) {
-    console.log('argss', args);
     const userId = args?.object[REQUEST_CONTEXT].user.id;
     console.log(houseId);
-    return this.memberService.isValidHouseMember(+houseId, userId);
+    return this.memberService.isValidHouseMember(houseId, userId);
   }
 
   defaultMessage(): string {
-    return '유저가 House 에 속해있지 않거나 존재하지 않은 House 입니다.';
+    return '유저가 해당 House에 속해있지 않습니다.';
   }
 }
 
