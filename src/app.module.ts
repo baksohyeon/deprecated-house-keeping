@@ -13,7 +13,7 @@ import { HouseModule } from './module/house/house.module';
 import { MemberModule } from './module/member/member.module';
 import { HouseworkModule } from './module/housework/housework.module';
 import { TaskModule } from './module/task/task.module';
-import { IsValidHouseMemberValidatorConstraint } from './validators/is-user-valid-house-member.validator';
+import { IsValidHouseMemberValidatorConstraint } from './validators/constraint/is-user-valid-house-member.constraint';
 
 @Module({
   imports: [

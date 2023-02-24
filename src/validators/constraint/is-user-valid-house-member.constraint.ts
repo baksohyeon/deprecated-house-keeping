@@ -16,7 +16,7 @@ import {
   InjectUserInterceptor,
   REQUEST_CONTEXT,
 } from 'src/validators/Interceptor/inject-user.interceptor';
-import { ExtendedValidationArguments } from 'src/validators/extended-validation-arguments.interface';
+import { ExtendedValidationArguments } from 'src/validators/constraint/extended-validation-arguments.interface';
 import { MemberService } from 'src/module/member/member.service';
 import { StripRequestContextPipe } from 'src/validators/pipe/strip-request-context.pipe';
 import { Repository } from 'typeorm';
@@ -37,17 +37,4 @@ export class IsValidHouseMemberValidatorConstraint
   defaultMessage(): string {
     return '유저가 해당 House에 속해있지 않습니다.';
   }
-}
-
-export function IsValidMember(validationOptions?: ValidationOptions) {
-  return function (object: any, propertyName: string) {
-    registerDecorator({
-      name: 'IsValidMember',
-      target: object.constructor,
-      propertyName: propertyName,
-      options: validationOptions,
-      constraints: [],
-      validator: IsValidHouseMemberValidatorConstraint,
-    });
-  };
 }
