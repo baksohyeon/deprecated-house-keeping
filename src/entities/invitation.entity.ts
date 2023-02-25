@@ -26,7 +26,7 @@ export class Invitation {
   user: User;
 
   @ManyToOne((type) => House)
-  @JoinColumn([{ name: 'houseId', referencedColumnName: 'id' }])
+  @JoinColumn([{ name: 'house_id', referencedColumnName: 'id' }])
   house: House;
 
   @Column('uuid')
