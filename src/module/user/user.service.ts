@@ -11,15 +11,14 @@ export class UserService {
   ) {}
 
   async findUserByEmail(email: string): Promise<User | null> {
-    const user = await this.userRepository.findOneBy({ email });
-    if (!user) {
-      return null;
-    }
-    return user;
+    return this.userRepository.findOneBy({ email });
   }
 
   async createUser(userInfo: RequestLoginUserDto): Promise<User> {
-    const userObject = this.userRepository.create(userInfo);
+    const userObject = this.userRepository.create({
+      username: userInfo.username,
+      email: userInfo.email,
+    });
     return this.userRepository.save(userObject);
   }
 

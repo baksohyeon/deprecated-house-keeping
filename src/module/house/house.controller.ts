@@ -16,7 +16,7 @@ import { User } from 'src/entities/user.entity';
 import { HouseService } from './house.service';
 import { UpdateHouseDto } from './dto/update-house.dto';
 import { InjectUserToParam } from 'src/validators/decorator/inject.user.decorator';
-import { HouseParams } from '../../validators/validated-params/house-params';
+import { HouseParams } from '../../validators/validated-params/house.params';
 
 @Controller('house')
 export class HouseController {
