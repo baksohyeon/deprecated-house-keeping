@@ -25,7 +25,7 @@ export class MemberController {
     @Body() createInvitationDto: CreateInvitationDto,
     @RequestUser() user: User,
   ) {
-    return this.memberService.inviteMember(createInvitationDto, user);
+    return this.memberService.inviteMember(createInvitationDto, houseId, user);
   }
 
   @UseGuards(AuthGuard('jwt-access'))

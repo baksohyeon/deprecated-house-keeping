@@ -31,27 +31,27 @@ export class MemberService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  async inviteMember(createInvitationDto: CreateInvitationDto, user: User) {
+  async inviteMember(
+    createInvitationDto: CreateInvitationDto,
+    houseId: number,
+    user: User,
+  ) {
     try {
       const recieverUser = await this.userRepository.findOneOrFail({
         where: {
           email: createInvitationDto.receiverEmail,
         },
       });
-      await this.validateInvitation(
-        user.id,
-        createInvitationDto.houseId,
-        recieverUser.id,
-      );
+      await this.validateInvitation(user.id, houseId, recieverUser.id);
 
       const invitationObject = this.invitationRepository.create({
         senderUserId: user.id,
         receiverUserId: recieverUser.id,
-        houseId: createInvitationDto.houseId,
+        houseId: houseId,
         status: Status.Pending,
       });
 
-      const invitation = this.invitationRepository.save(invitationObject);
+      const invitation = await this.invitationRepository.save(invitationObject);
       return invitation;
     } catch (e) {
       return `${e.name}: ${e.message}`;
@@ -64,12 +64,19 @@ export class MemberService {
     recieverUserId: string,
   ) {
     // 초대를 요청한 유저가 해당 house의 멤버가 아닐 경우 에러 발생
-    await this.houseMemberRepository.findOneOrFail({
-      where: {
-        userId: senderUserId,
-        houseId: houseId,
-      },
-    });
+    const isRequestUserMemberOfTheHouse =
+      await this.houseMemberRepository.findOne({
+        where: {
+          userId: senderUserId,
+          houseId: houseId,
+        },
+      });
+
+    if (!isRequestUserMemberOfTheHouse) {
+      throw new NotAcceptableException(
+        '초대를 보낸 유저는 해당 House 의 멤버가 아닙니다. ',
+      );
+    }
 
     // house 가 존재하지 않는 경우 에러 발생
     await this.houseRepository.findOneByOrFail({
@@ -77,7 +84,7 @@ export class MemberService {
     });
 
     // 초대받은 유저가 이미 house의 멤버일 경우 에러 발생
-    const isAlreadyMember = this.houseMemberRepository.findOneBy({
+    const isAlreadyMember = await this.houseMemberRepository.findOneBy({
       userId: recieverUserId,
       houseId: houseId,
     });
@@ -89,14 +96,13 @@ export class MemberService {
     }
 
     // 요청을 기다리는 초대가 있을 경우 에러 발생
-    const isExistPendingInvitation =
-      await this.invitationRepository.findOneOrFail({
-        where: {
-          houseId: houseId,
-          receiverUserId: recieverUserId,
-          status: Status.Pending,
-        },
-      });
+    const isExistPendingInvitation = await this.invitationRepository.findOne({
+      where: {
+        houseId,
+        receiverUserId: recieverUserId,
+        status: Status.Pending,
+      },
+    });
 
     if (isExistPendingInvitation) {
       throw new NotAcceptableException('Already Requested Invitation');
