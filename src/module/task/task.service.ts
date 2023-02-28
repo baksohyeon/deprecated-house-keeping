@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotAcceptableException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { HouseMember } from 'src/entities/houseMember.entity';
 import { Housework } from 'src/entities/housework.entity';
